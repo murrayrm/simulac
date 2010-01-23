@@ -42,6 +42,11 @@
 #define Success  0
 #define Failure  1
 
+#ifdef RMM_MODS
+/* Create a variable for specifying the global MOI */
+int global_MOI = 0;
+#endif
+
 /************************************/
 /******* Simple Utilities ***********/
 /************************************/
@@ -439,7 +444,7 @@ char *mech;
 fclose(fp);	 	 
 }
 
-void ReadDNA(fp,mech)
+void ReadDNA(fp, mech)
 FILE *fp;
 char *mech;
 {
@@ -559,13 +564,16 @@ char *mech;
   /**** Now read the DNA parameters ******/
 
   /* First Get MOI */
-
   fscanf(fp,"%s %*s %d",token,&moi);
   if(strcmp(token,"MOI")!=0){
     fprintf(stderr,"%s: Expected an MOI token instead of %s in mechanism %s.\n"
 	    ,progid,token,mech);
     exit(-1);
   }
+#ifdef RMM_MODS
+  /* Reset the MOI using the command line option */
+  if (global_MOI != 0 && moi != 1) moi = global_MOI;
+#endif
 
 
   name=        (char **) rcalloc(rflag,sizeof(char *),"ReadDNA.6");

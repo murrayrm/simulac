@@ -119,6 +119,10 @@ char **argv;
     exit(1);
   }
 
+  /* Perform processing of cmdline arguments that affect init/parsing */
+  extern int global_MOI;
+  if (args_info.moi_given) global_MOI = args_info.moi_arg;
+
 #else
   if (argc!=5) {
     fprintf(stderr, "usage: %s outline_file Maximum_Time Print_Time SEED\n",
@@ -175,7 +179,7 @@ char **argv;
   /* Set cell volume */
   if (args_info.volume_given) {
     fprintf(stderr, "Resetting initial cell volume from %g", EColi->VI);
-    EColi->VI *= args_info.volume_arg;
+    EColi->V = (EColi->VI *= args_info.volume_arg);
     fprintf(stderr, " to %g\n", EColi->VI);
   }
 
@@ -184,6 +188,13 @@ char **argv;
     fprintf(stderr, "Resetting cell growth rate from %g", EColi->GrowthRate);
     EColi->GrowthRate *= args_info.growth_arg;
     fprintf(stderr, " to %g\n", EColi->GrowthRate);
+  }
+
+  /* Determine if we should allow cell division */
+  if (args_info.single_given) {
+    fprintf(stderr, "Resetting cell volume to stop cell division\n");
+    /* HACK: set cell division size to something huge */
+    EColi->VI *= 1000;
   }
 
   /* Set parameter values */
@@ -377,7 +388,12 @@ int cnt;
   for(i=0; i<NSpecies; i++)
     fprintf(stdout,"%7d\t",Concentration[i]);
 
+#ifdef RMM_MODS
+  /* Use the reference cell size for normalization */
+  fprintf(stdout,"%e\t",EColi->V/EColi->V0);
+#else
   fprintf(stdout,"%e\t",EColi->V/EColi->VI);
+#endif
 
   for(i=0; i<NOperators; i++)
     fprintf(stdout,"%7d\t",Operator[i].CurrentState);
