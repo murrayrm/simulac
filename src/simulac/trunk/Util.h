@@ -29,9 +29,6 @@
 
 /*** These are needed because AIX is brain-dead ***/
 
-extern int strcasecmp();
-extern int strncasecmp();
-
 #define TRUE         1
 #define FALSE        0
 
