@@ -2,8 +2,8 @@
 # 
 
 CC     = gcc
-# CFLAGS = -g -D_H_MALLOC -DRMM_MODS -I/usr/local/include
-CFLAGS = -O -D_H_MALLOC -I/usr/local/include
+CFLAGS = -g -D_H_MALLOC -DRMM_MODS -I/usr/local/include
+# CFLAGS = -O -D_H_MALLOC -I/usr/local/include
 LIBS   = -lm -lc
 OBJS   = Util.o Memory.o Kinetics.o PromotorDynamics.o SegmentDynamics.o ReactionManager.o ParseDataBase.o CellManager.o cmdline.o
 OOBJS  = Main.o
