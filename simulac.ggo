@@ -1,0 +1,9 @@
+package "simulac"
+version "1.0"
+usage "Simulac [options] outline_file maxtime printtime seed"
+
+option "init"	i  "initial condition, name=val (int)" string optional multiple
+option "rate"   r  "rate parameter, kNN=val (float)" string optional multiple
+option "volume" v  "initial cell volume, (0-1]" float optional
+option "growth" g  "cell growth rate, (0-1]" float optional
+option "header" h  "print header row in output file" flag on 

@@ -255,7 +255,7 @@ extern int      **StoMat1;
 extern int      **StoMat2;
 extern double    *ReactionProbability;
 
-extern        NReactions;
+extern int       NReactions;
 extern REACTION  *Reaction;
 extern double     TotalProbability;
 extern double    *Probabilities;

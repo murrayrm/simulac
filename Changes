@@ -1,0 +1,4 @@
+RMM, 3 Oct 09: added command line parameters
+  * Can set cell volume, growth rate, initial concentrations, rate constants
+    from command line
+  * See simulac.ggo for a list of options

@@ -26,6 +26,11 @@
 
 #include <assert.h>
 
+/* Modifications by R. M. Murray, 1 Oct 09 */
+#ifdef RMM_MODS
+#include "cmdline.h"
+#endif
+
 #ifndef DataStructures
    #include "DataStructures.h"
 #endif
@@ -104,11 +109,23 @@ char **argv;
   void FillBicoTable();
 
   strcpy(progid,argv[0]);
-  
-  if(argc!=5){
-    fprintf(stderr,"usage: %s outline_file Maximum_Time Print_Time SEED\n",argv[0]);
+
+#ifdef RMM_MODS
+  /* Command line argument parsing */
+  struct gengetopt_args_info args_info;
+  if (cmdline_parser(argc, argv, &args_info) != 0) exit(1);
+  if (args_info.inputs_num < 3 || args_info.inputs_num > 4) {
+    fprintf(stderr, "%s\n", gengetopt_args_info_usage);
+    exit(1);
+  }
+
+#else
+  if (argc!=5) {
+    fprintf(stderr, "usage: %s outline_file Maximum_Time Print_Time SEED\n",
+	    argv[0]);
     exit(-1);
   }
+#endif
 
   /************
    *
@@ -144,16 +161,106 @@ char **argv;
 
   FillBicoTable();
 
+#ifdef RMM_MODS
+  /* Use the command line inputs to get basic parameters */
+  ParseOutline(args_info.inputs[0]);
+  MaximumTime =  atof(args_info.inputs[1]);
+  PrintTime   =  atof(args_info.inputs[2]);
+  SEED = (args_info.inputs_num > 3) ? atol(args_info.inputs[3]) : time(NULL);
+
+  /* 
+   * Process optional arguments 
+   */
+
+  /* Set cell volume */
+  if (args_info.volume_given) {
+    fprintf(stderr, "Resetting initial cell volume from %g", EColi->VI);
+    EColi->VI *= args_info.volume_arg;
+    fprintf(stderr, " to %g\n", EColi->VI);
+  }
+
+  /* Set growth rate */
+  if (args_info.growth_given) {
+    fprintf(stderr, "Resetting cell growth rate from %g", EColi->GrowthRate);
+    EColi->GrowthRate *= args_info.growth_arg;
+    fprintf(stderr, " to %g\n", EColi->GrowthRate);
+  }
+
+  /* Set parameter values */
+  if (args_info.rate_given) {
+    fprintf(stderr, "Processing %d rate parameters\n",
+	    args_info.rate_given);
+
+    /* Go through all initial condition commands */
+    int i;
+    for (i = 0; i < args_info.rate_given; ++i) {
+      int index;
+      float val;
+
+      /* Parse the intial condition */
+      fprintf(stderr, "  processing %s: ", args_info.rate_arg[i]);
+      sscanf(args_info.rate_arg[i], "k%d=%g", &index, &val);
+      fprintf(stderr, "reaction = %d, value = %g\n", index, val);
+
+      /* Make sure the reaction number is OK */
+      if (index < NMassAction) {
+	ReactionProbability[index] = val;
+      } else {
+	fprintf(stderr, "  reaction number %d out of range (%d)\n",
+		index, NMassAction); 
+      }
+    }
+  }
+
+  /* Set initial conditions */
+  if (args_info.init_given) {
+    fprintf(stderr, "Processing %d initial condition arguments\n",
+	    args_info.init_given);
+
+    /* Go through all initial condition commands */
+    int i;
+    for (i = 0; i < args_info.init_given; ++i) {
+      char *name = (char *) calloc(1, 256);
+      int val;
+      assert(name != NULL);
+
+      /* Parse the intial condition */
+      fprintf(stderr, "  processing %s: ", args_info.init_arg[i]);
+      sscanf(args_info.init_arg[i], "%[^=]=%d", name, &val);
+      fprintf(stderr, "species = %s, value = %d\n", name, val);
+
+      /* Try to find this argument in the list of species */
+      int j;
+      for (j = 0; j < NSpecies; ++j)
+	if (strcmp(name, SpeciesName[j]) == 0) break;
+
+      /* Release storage */
+      free(name);
+
+      if (j < NSpecies) {
+	/* We found a match */
+	fprintf(stderr, "  resetting initial concentration for species %s",
+		SpeciesName[j]);
+	fprintf(stderr, " from %d to %d\n", Concentration[j], val);
+	Concentration[j] = val;
+      } else {
+	fprintf(stderr, "  couldn't find species %s\n", name);
+      }
+    }
+  }
+#else  
   /****************
    *
    * Read in simulation model
    *
    *****************/
-  
+
   ParseOutline(argv[1]);
   MaximumTime =  atof(argv[2]);
   PrintTime   =  atof(argv[3]);
   SEED        =  atol(argv[4]);
+#endif
+  fprintf(stderr, "SEED = %ld\n", SEED);
   srand48(SEED);
 
   DEBUG(20){
@@ -169,13 +276,20 @@ char **argv;
    *
    ********************/
 
-  fprintf(stdout,"!\t\tNR\tRPQ\t");
+#ifdef RMM_MODS
+  if (args_info.header_flag) {
+# endif
+  fprintf(stdout,"%% Time\tNR\tRPQ\t");
   for(i=0;i<NSpecies;i++)
     fprintf(stdout,"%6s\t",SpeciesName[i]);
   fprintf(stdout,"%6s\t","Volume");
   for(i=0;i<NOperators; i++)
     fprintf(stdout,"%6s\t",&Operator[i].Name[8]);
   fprintf(stdout,"\n");
+#ifdef RMM_MODS
+  }
+# endif
+
   WriteSpeciesState(0.0,0,0.0);
   Time=0.0;
   WriteTime= Time+PrintTime;
