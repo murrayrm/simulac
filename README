@@ -1,0 +1,307 @@
+
+This is the beta version of the kernel for BIO/SPICE. The kernel is called simulac.
+This particular kernel is an implementation of the Gillespie Monte Carlo simulation
+algorithm for the Chemical Master Equation. As such it is exact. However it is slow.
+
+Anyway-- this code is offered as is with no warranty implied or otherwise.
+
+This code is designed for use in a UNIX environment. However, it is written in
+standard C so there should be nothing special to do in order to port it to other
+platforms.
+
+INSTALL
+
+1) Uncompress the archive file.  2) Type make.
+	The make utility should create an executable called Simulac.
+
+
+Running Simulac
+
+Well, this is a complicated business at the moment. The upcoming graphical front-end
+should make this alot easier.
+
+
+The file structure for input files to this version of the simulator is as follows:
+
+An 'outline' file containing the file names of a 'Cel' file (hold parameters for
+cell volume and growth), 'Kin' files that contain basic chemical kinetics, and 'Seq'
+files that contain sequence based information. 'Seq' files will point to other files
+that I will describe in a moment.
+
+Here is a representative outline file. Lines prefixed with '%' are always comments
+and are always ignored by the parser.  The order of the files in the outline file
+shouldn't matter...but usually I do 'Cel' then 'Kin' then 'Seq'. Initial
+concentration s in the last Kin file are dominant.
+
+% 
+% This file outlines the mechanisms 
+% needed to model much of the lambda phage 
+% 
+% Parameter set 12.0//mRNA
+
+Cel.EColi 
+Kin.Lambda 
+Kin.CIICIII 
+Kin.RNAP 
+Kin.Ribosome 
+Seq.LambdaPL 
+Seq.LambdaPRPAQ
+
+
+A 'Cel' file looks like:
+
+
+% E. Coli Cell Parameters % % Volumes in liters % % GrowthRate in 10^-18 liters/sec
+% 
+%
+
+TYPE= Cell
+
+-------
+
+
+VI= 1e-15 
+V0= 1.41e-15 
+GrowthRate= 0.4762
+
+
+'VI' is the initial volume of the cell, V0 is the reference volume used in
+calculation of the free energies, etc., and Growthrate is the growthrate (in units of 10^-18L) . In our
+model, when the volume doubles the cell divides. Very primitive. Also-- growth is
+stochastic and linear.
+
+
+% CII/CIII/Hfl protein Kinetics 
+% 
+% PSet 14.1//Hfl
+
+TYPE= Kinetic
+
+-------
+
+CII + Hfl --> Hfl_CII Hfl_CII --> CII + Hfl Hfl_CII --> Hfl
+
+CIII + Hfl --> Hfl_CIII Hfl_CIII --> CIII + Hfl Hfl_CIII --> Hfl
+
+CII + HflB --> HflB_CII HflB_CII --> CII + HflB HflB_CII --> HflB
+
+CIII + HflB --> HflB_CIII HflB_CIII --> CIII + HflB HflB_CIII --> HflB
+
+() --> Hfl
+
+() --> HflB
+
+-------
+
+k1 = 0.01 sec 
+k2 = 0.01 sec 
+k3 = 0.015 sec
+
+k5 = 0.05 sec 
+k6 = 0.001 sec 
+k7 = 0.0001 sec
+
+k9 = 0.0001 sec 
+k10 = 0.065 sec 
+k11 = 0.6 sec
+
+k9 = 0.01 sec 
+k10 = 0.01 sec 
+k11 = 0.001 sec
+
+k13 = 0.0116 sec
+
+k15 = 0.0465 sec
+
+----
+
+CII = 0 
+Hfl = 25 
+Hfl_CII = 0 
+CIII = 0 
+Hfl_CIII = 0 
+HflB = 100 
+HflB_CII = 0
+
+
+Here the rate constants 'k' are measure in units of the appropriate molarity times
+inverse seconds. The intial concentrations on the bottom is in molecules.
+
+'Seq' files look like:
+
+
+% 
+% Simple Lambda Approximation 
+% 
+% TL1 Large since it covers orf ea10 and ra1 
+% TL2 Large since it covers a bunch o' genes as well. 
+% 
+% PSet 3.4//NT
+
+TYPE= DNA
+
+-------
+
+
+PL --> NUTL --> GeneN --> TL1 --> GeneCIII
+
+-------
+
+MOI = 13
+
+PL 60 nt RIGHT Promotor PromDataPL 
+NUTL 73 nt RIGHT AntiTerminator ATermDataNUTL
+GeneN 481 nt RIGHT Gene ProtDataN 
+TL1 1574 nt RIGHT Terminator TermDataTL1 
+GeneCIII 164 nt RIGHT Gene ProtDataCIII
+
+
+Each DNA region is linked to the next with a '-->'. There is one line of parameters
+for each region. For example, PL is 60 nucleotides long. It is transcribed to the
+RIGHT (this is arbitrary in this case-- there are no counter-propagating transcripts
+to worry about). It is a promoter (yes-- I spelled it wrong in the parser and never
+went back to change it) and the data on the promoter is stored in PromDataPL.
+
+The three types of DNA region data files are as follows: 'PromData', 'ProtData',
+'TermData' and 'ATermData'.
+
+PromData files look like:
+
+% 
+% Promotor Data File 
+% 
+%
+
+TranscriptionDirection = RIGHT 
+SheaAckers = OperatorPL 
+IsoData = IsoDataPL
+
+They contain a superceding transcription direction, a pointer to a shea-ackers style
+operator thermodynamics file and CC-->OC rate file.
+
+The 'Operator' file looks like:
+
+2 10
+
+___ ___ -0.0
+
+CroCro ___ -10.8 
+___ CroCro -12.1 
+CICI ___ -11.7 
+___ CICI -10.1 
+___ RNAP -12.5
+
+CroCro CroCro -22.9 
+CroCro CICI -20.9 
+CICI CroCro -22.8 
+CICI CICI -23.7
+
+
+Where the first two number are the number of binding sites and the number of
+configurations.  This is followed by a list of configurations where molecular names
+are placed in the relevant columns (one column for each functional binding site) If
+in a given configuration nothing binds to a particular site, then the symbol '___'
+is used there.  The last column is always the free energy of that site. There are
+definitely more effficient ways of storing this info but this one is easy to look
+at.
+
+'IsoData files are boring and are merely a list of isomerization rates for each of
+the states in the Operator file. Why these two files are separate is beyond me.
+
+
+0.0 
+0.0 
+0.0 
+0.0 
+0.0 
+0.011 
+0.0 
+0.0 
+0.0 
+0.0
+
+
+'ProtData' files look like:
+
+% 
+% Coding Data for GeneN 
+%
+
+Product = N 
+mRNADegradationRate = 0.2 sec
+
+
+The 'Product' is the name of the protein product. In this version of the simulator,
+the number of the proteins per transcript are decided by a race between ribosome
+binding and RNaseE binding. Ribosomes and RNAase are kept pretty constant during the
+simulation, the number of proteins per transcript is the ratio of the ribosome
+binding rate to the 'mRNADegradation rate'.  For the simulations we ran, the
+ribosome binding rate was always roughly 2.0. This format has been changed in the
+latest verion but it is not consistent with the file structures above.
+
+
+'TermData' files look like:
+
+% 
+% TL1 Terminator 
+%
+
+TermModifier = N 
+BaseFallOffRate = 25.0 sec 
+BaseRNAPMotion = 5.0 sec
+AntiTerminatedFallOffRate = 0.0 sec 
+AntiTerminatedRNAPMotion = 30.0 sec
+
+
+This is for terminators that may be susceptible to antiterminated RNAP.
+
+TermModifier is the appropriate antitermination molecule that must be bound the RNAP
+crossing these region in order for the antitermination kinetics to dominate. The
+protein is 'N' in this case. For PR' it would be 'Q'.  The 'BaseFallOffRate' and
+'BaseRNAPMotion' are the rates of termination and transcription respectively that
+result while a non-antiterminated RNAP crosses the termination region. The
+AntiTerminated variables are for when the RNAP has bound the TermModifier. In this
+version of the simulator-- these kinetics are only used on the last base of the
+terminator. All other bases are treated like normal DNA. This yields the correct
+experimental results but is probably not how it actually work. (Like any of this is
+how it actually works.... :-/ )
+
+Finally, 'ATermData' files look like:
+
+% 
+% AntiTermination Site NUTL 
+% 
+% 
+% Modified: 10/29/96 to make 70nM 
+% the effective concentration.  
+% 
+%
+
+TermModifier = N 
+UnBoundRNAPMotion = 5 sec 
+BindingRate = 0.145 sec 
+BoundRNAPMotion = 30 sec 
+UnBindingRate = 0.1 sec
+
+This is the same sort of deal as the TermData files--- modification molecule, how
+RNAP moves when the modifier is not present, the binding rate of the modifier to
+RNAP (BindingRate ends up multiplied by the modifier concentration), how modifier
+bound RNAP moves on the DNA and the rate of modifier loss.
+
+
+
+--------
+
+OK..... got all that? I know: Rube Golbergian. I promise the next version will be very simple 
+to use. 
+
+A simple example is included in Auto.tar.
+This is a simple regulatory loop similar to that used to produce the data in our
+firt PNAS paper.
+
+In that directory is a shell script called 'simpsim' that I was using to run many simulations
+in batch.
+
+Try it out.
+
+Adam Arkin
