@@ -1,0 +1,21 @@
+% Simple Ribosome kinetics
+%
+% See Outline 'FirstOutline'
+
+TYPE=	Ribosome
+
+-------
+
+()		--> 	Ribosome
+Ribosome	-->	()
+
+-------
+
+k1	=	0.5	sec
+k2	=	0.001	sec
+
+-------
+
+Ribosome	= 	357
+
+

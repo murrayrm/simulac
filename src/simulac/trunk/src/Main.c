@@ -29,6 +29,7 @@
 /* Modifications by R. M. Murray, 1 Oct 09 */
 #ifdef RMM_MODS
 #include "cmdline.h"
+struct gengetopt_args_info args_info;
 #endif
 
 #ifndef DataStructures
@@ -62,6 +63,11 @@ SHEADATA  *Operator;
 
 int        NSequences=0;
 DNA       *Sequence;
+
+#ifdef RMM_MODS
+int        NPromotors=0;
+PROMOTOR   **Promotor = NULL;
+#endif
 
 int        NTranscripts=0;
 mRNA      *Transcript;
@@ -112,7 +118,6 @@ char **argv;
 
 #ifdef RMM_MODS
   /* Command line argument parsing */
-  struct gengetopt_args_info args_info;
   if (cmdline_parser(argc, argv, &args_info) != 0) exit(1);
   if (args_info.inputs_num < 3 || args_info.inputs_num > 4) {
     fprintf(stderr, "%s\n", gengetopt_args_info_usage);
@@ -296,10 +301,13 @@ char **argv;
   fprintf(stdout,"%6s\t","Volume");
   for(i=0;i<NOperators; i++)
     fprintf(stdout,"%6s\t",&Operator[i].Name[8]);
-  fprintf(stdout,"\n");
 #ifdef RMM_MODS
+  /* RNAP counts */
+  for (i = 0; i < NPromotors; ++i)
+      fprintf(stdout, "%6s-RNAP\t", Promotor[i]->Name);
   }
 # endif
+  fprintf(stdout,"\n");
 
   WriteSpeciesState(0.0,0,0.0);
   Time=0.0;
@@ -397,6 +405,14 @@ int cnt;
 
   for(i=0; i<NOperators; i++)
     fprintf(stdout,"%7d\t",Operator[i].CurrentState);
+
+#ifdef RMM_MODS
+  if (args_info.pops_given) {
+    /* Print out the number of RNApolymerases for each promoter */
+    for (i = 0; i < NPromotors; ++i)
+      fprintf(stdout, "%7d\t", Promotor[i]->RNAPCount);
+  }
+#endif
 
   fprintf(stdout,"\n");
   fflush(stdout);

@@ -1,0 +1,24 @@
+% Weird DNA Model
+%
+% Simple Lambda Approximation
+%
+% TL1 Large since it covers orf ea10 and ra1
+% TL2 Large since it covers a bunch o' genes as well.
+%
+
+TYPE=	DNA
+
+-------
+
+
+PL --> NUTL --> GeneN --> TL1 --> GeneCIII 
+
+-------
+
+MOI  =  10
+
+PL		60	nt	RIGHT	Promotor	PromDataPL
+NUTL		73	nt	RIGHT	AntiTerminator	ATermDataNUTL
+GeneN		481	nt	RIGHT	Gene		ProtDataN
+TL1		1574	nt	RIGHT	Terminator	TermDataTL1
+GeneCIII	164	nt	RIGHT	Gene		ProtDataCIII

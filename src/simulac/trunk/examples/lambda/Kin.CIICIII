@@ -1,0 +1,59 @@
+% Lambda Protein Kinetics
+%
+%
+
+TYPE=	Kinetic
+
+-------
+
+CII	+	Hfl		-->	Hfl_CII
+Hfl_CII				-->	CII	+ Hfl
+Hfl_CII				-->	Hfl
+
+CIII	+	Hfl		-->	Hfl_CIII
+Hfl_CIII			-->	CIII	+ Hfl
+Hfl_CIII			-->	Hfl
+
+CII	+	HflB		-->	HflB_CII
+HflB_CII			-->	CII	+ HflB
+HflB_CII			-->	HflB
+
+CIII	+	HflB		-->	HflB_CIII
+HflB_CIII			-->	CIII	+ HflB
+HflB_CIII			-->	HflB
+
+()				-->	Hfl
+
+()				-->	HflB
+
+-------
+
+k1	=	0.01		sec
+k2	=	0.01		sec
+k3	=	0.015		sec
+
+k5	=	0.05		sec
+k6	=	0.001		sec
+k7	=	0.0001 		sec
+
+k9	=	0.0001		sec
+k10	=	0.065		sec
+k11	=	0.6		sec
+
+k9	=	0.01		sec
+k10	=	0.01		sec
+k11	=	0.001		sec
+
+k13	=	0.0116		sec
+
+k15	=	0.0465		sec
+
+----
+
+CII	 =	0
+Hfl	 =	25
+Hfl_CII	 =	0
+CIII	 =	0
+Hfl_CIII =	0
+HflB	 =      100
+HflB_CII =      0

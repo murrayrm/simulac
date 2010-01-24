@@ -76,6 +76,10 @@ struct promotor {
   double      *IsoRate;   /* Isomerization rates for formation of OC for each config */
   short        TranscriptionDirection;
   RNAP        *RNAPQueue;
+#ifdef RMM_MODS
+  char        *Name;	/* Name of the promotor (for output file) */
+  int RNAPCount;	/* Count the number of RNAP polymerases that go by  */
+#endif
 };
 
 struct segment {
@@ -246,6 +250,12 @@ extern SHEADATA  *Operator;
 
 extern int        NSequences;
 extern DNA       *Sequence;
+
+#ifdef RMM_MODS
+/* Keep track of the promotors so that we can report on transcription rates */
+extern int        NPromotors;
+extern PROMOTOR   **Promotor;
+#endif
 
 extern int        NTranscripts;
 extern mRNA      *Transcript;

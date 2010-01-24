@@ -1,0 +1,13 @@
+%
+% This file outlines the mechanisms
+% needed to model much of the lambda phage
+%
+
+Cel.EColi
+Kin.Lambda
+Kin.CIICIII
+Kin.RNAP
+Kin.Ribosome
+Seq.LambdaPL
+Seq.LambdaPRPAQ
+	

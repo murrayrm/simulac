@@ -1,0 +1,49 @@
+% Lambda Protein Kinetics
+%
+%
+% Increased degradation of CI and Cro by 6.5 time to
+% better match the decay rate of total monomer
+%
+%
+%
+% Cro Half-Life= 30 minutes (Reinitz, Vaisnys, (1990) JTB, p.295
+% CI  Half-Life> 40 minutes (Brown, (Ask Harley)
+% N   Half-Life=  5 minutes 
+%     (Gottesman, Gottesman, Shaw, Pearson, (1981) Cell, 24:225
+%
+
+TYPE=	Kinetic
+
+-------
+
+CI			-->	()
+Cro			-->	()
+N			-->	()
+
+2 CI			-->	CICI
+CICI			-->	2 CI
+
+2 Cro			-->	CroCro
+CroCro			-->	2 Cro
+
+-------
+
+k1	=	0.0007	sec
+k2	=	0.0025	sec
+k3	=	0.00231	sec
+k4	=	0.05	sec
+k5	=	0.5 	sec
+k6	=	0.05	sec
+k7	=	0.5	sec
+
+-------
+
+
+CI	=	0
+Cro	=	0
+N	=	0
+CICI	=	0
+CroCro	=	0
+
+
+

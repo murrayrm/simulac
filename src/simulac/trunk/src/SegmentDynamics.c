@@ -909,7 +909,7 @@ void *rdata;
 	   FreeRibosome(rqueue->LastRibosome);
 	 }
        }         
-       fprintf(stderr,"%%%%% Delete Transcript\n");
+       fprintf(stderr,"%%%%%% Delete Transcript\n");
        free(rnap->Transcript);
      }
      

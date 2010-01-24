@@ -1,0 +1,9 @@
+%
+% TR1 Terminator
+%
+
+TermModifier                    =       N
+BaseFallOffRate                 =       15.0    sec
+BaseRNAPMotion                  =       15.0    sec
+AntiTerminatedFallOffRate       =        0.0    sec
+AntiTerminatedRNAPMotion        =       30.0    sec

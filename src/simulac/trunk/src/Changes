@@ -1,3 +1,9 @@
+RMM, 23 Jan 10: added -p, --pops option to turn on PoPs output
+
+RMM, 19 Nov 09: added code to track transcript initiation
+  * Added new list of promoters + extra data elements
+  * Count the number of open complexes on each promoter and output
+
 RMM, 15 Nov 09: updates to cell division
   * Added -s, --single to turn off cell growth ("single cell")
   * Cell size normalization now down by reference size (versus initial)
