@@ -1,0 +1,3 @@
+01-22-10	Add command line option to set search path for config files
+01-22-10	Convert src/README into documentation file
+01-22-10	Start working on doxygen documentation for code

@@ -15,29 +15,14 @@
 /******* Includes ***********/
 /****************************/
 
-#ifndef _H_STDIO
- #include <stdio.h>
-#endif
+#include <stdio.h>
+#include <stdlib.h>
+#include <strings.h>
+#include <ctype.h>
+#include <assert.h>
 
-#ifndef _H_STLIB
- #include <stdlib.h>
-#endif
-
-#ifndef _H_STRINGS
- #include <strings.h>
-#endif
-
-#ifndef __H_CTYPE
- #include <ctype.h>
-#endif
-
-#ifndef DataStructures
- #include "DataStructures.h"
-#endif
-
-#ifndef UTILS
- #include "Util.h"
-#endif
+#include "DataStructures.h"
+#include "Util.h"
 
 #define Success  0
 #define Failure  1
@@ -52,16 +37,41 @@ int global_MOI = 0;
 /************************************/
 
 FILE *OpenFile(file,status)
-char *file,*status;
+char *file, *status;
 {
   FILE *fp;
 
-  if((fp=fopen(file,status))==NULL){
-    fprintf(stderr,"%s: Unable to open file %s with status %s.\n",progid,file,status);
-    exit(-1);
+  /* Make sure the arguments make sense */
+  assert(file != NULL);
+  assert(status != NULL);
+
+  /* Start by looking in the current directory */
+  if ((fp = fopen(file,status)) != NULL) return(fp);
+
+  /* See if the we got a path on the command line */
+  /*! Not impemented !*/
+
+  /* Look for an environment variable with the directory name */
+  char *confdir;
+  if ((confdir = getenv("SIMULAC_CONFDIR")) != NULL) {
+    /* Prepend the path to the filename */
+    char *path = malloc(strlen(confdir) + strlen(file) + 2);
+    assert(path != NULL);
+    sprintf(path, "%s/%s", confdir, file);
+    
+    /* Open up the file */
+    fp = fopen(path, status);
+
+    /* Release memory */
+    free(path);
+
+    if (fp != NULL) return(fp);
   }
 
-  return(fp);
+  /* Couldn't find the file; print message and exit */
+  fprintf(stderr,"%s: Unable to open file %s with mode %s.\n",
+	  progid, file, status);
+  exit(-1);
 }
 
 void GrowStomatReactions(n)
