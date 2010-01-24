@@ -23,7 +23,7 @@ simulac.tgz:
 
 # Files for command line options
 cmdline.o: cmdline.c cmdline.h
-cmdline.h: simulac.ggo
+cmdline.h cmdline.c: simulac.ggo
 	gengetopt -u -i simulac.ggo 
 
 # Source code dependencies
