@@ -277,6 +277,15 @@ void *reactdata;
   }
 
   promotor= (PROMOTOR *) pfragment->DNAStruct;
+#ifdef RMM_MODS
+  /* Keep track of the number of RNA polymerases that have gone by */
+  promotor->RNAPCount++;
+
+  DEBUG(20) {
+    fprintf(stderr, "Initiating transcription on %s, count = %d\n",
+	    promotor->Name, promotor->RNAPCount);
+  }
+#endif
 
   if(promotor->TranscriptionDirection == LEFT) dna= pfragment->LeftSegment;
   else dna= pfragment->RightSegment;

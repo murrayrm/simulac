@@ -59,9 +59,10 @@ char *id;
   void *ptr;
 
   if((ptr=calloc(nelem,size))==NULL){
-    fprintf(stderr,"%s: Error Allocating Memory (%d,%d)\n",progid,nelem,size);
+    fprintf(stderr,"%s: Error Allocating Memory (%d,%d)\n",
+	    progid, (int) nelem, (int) size);
     if(id) 
-      fprintf(stderr,"%s: ID= %s\n",progid,id);
+      fprintf(stderr,"%s: ID= %s\n", progid, id);
     exit(-1);
   }
 

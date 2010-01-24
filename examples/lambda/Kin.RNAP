@@ -1,0 +1,21 @@
+% Simple RNAP kinetics
+%
+% See Outline 'FirstOutline'
+
+TYPE=	RNAP
+
+-------
+
+()	--> 	RNAP
+RNAP	-->	()
+
+-------
+
+k1	=	0.90	sec
+k2	=	0.03	sec
+
+-------
+
+RNAP	= 	22
+
+

@@ -1,0 +1,13 @@
+%
+% AntiTermination Site NUTR
+%
+% Modified: 10/29/96 to make 70nM
+% the effective concentration.
+%
+%
+
+TermModifier            =       N
+UnBoundRNAPMotion       =       5       sec
+BindingRate             =       0.145   sec
+BoundRNAPMotion         =       30      sec
+UnBindingRate           =       0.1     sec

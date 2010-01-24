@@ -1,0 +1,12 @@
+%
+% Promotor Data File
+%
+% Note OperatorPRE and
+% IsoData PRE modified
+% on 10/5/96 to deal with
+% new CII/CIII interaction
+%
+
+TranscriptionDirection	=	RIGHT	
+SheaAckers		=	OperatorPRE
+IsoData			=	IsoDataPRE

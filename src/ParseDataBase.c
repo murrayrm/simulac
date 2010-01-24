@@ -737,8 +737,24 @@ char *mech;
      switch(sequence->Type){
        
      case DNA_Type_Promotor:
-       
-       prom=((PROMOTOR *) rcalloc(1,sizeof(PROMOTOR),"ReadDNA.14"));
+#ifdef RMM_MODS
+       /* Keep a list of the promoters for future reference */
+       fprintf(stderr, "Reading promoter %s, copy %d\n", sequence->Name, i);
+       if (NPromotors == 0) {
+	 /* Allocate space for the promotor list */
+	 Promotor = (PROMOTOR **) rcalloc(1,
+					 sizeof(PROMOTOR *), "ReadDNA.14a");
+       } else {
+	 /* Reallocate a larger list */
+	 Promotor = (PROMOTOR **) rrealloc(Promotor, NPromotors + 1,
+					  sizeof(PROMOTOR*), "ReadDNA.14b");
+       }
+       prom = (PROMOTOR *) rcalloc(1, sizeof(PROMOTOR), "ReadDNA.14c");
+       prom->Name = sequence->Name;
+       Promotor[NPromotors++] = prom;
+#else
+       prom = (PROMOTOR *) rcalloc(1, sizeof(PROMOTOR), "ReadDNA.14");
+#endif
        sequence->DNAStruct= (void *)  prom;
        prom->RNAPQueue=NULL;
        ReadPromotorData(i,prom,parameters[j]);
@@ -880,6 +896,10 @@ char      *params;
    ***** In the third case, duplicates will be made automatically be the program.
    *****/
 
+#ifdef RMM_MODS
+  prom->RNAPCount = 0;
+#endif
+
   fp= OpenFile(params,"r");
 
   fgets(token3,81,fp);
@@ -912,11 +932,12 @@ char      *params;
 
   sprintf(token3,"%s.%d",token2,copy);
 
+  /* Look to see if we have already read this operator file */
   for(i=0; i<NOperators; i++)
     if(strcmp(token3,Operator[i].Name)==0)
       break;
   
-
+  /* If we haven't read the operator file, do so now */
   if(i==NOperators){
     fprintf(stderr,"@@@ Reading SheaAckers for copy %d\n",copy);
     ReadSheaAckers(copy,token2);

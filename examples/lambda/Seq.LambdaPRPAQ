@@ -1,0 +1,27 @@
+% Weird DNA Model
+%
+% Simple Lambda Approximation
+%
+% Check for backwards terminator for PAQ transcription
+%
+
+TYPE=	DNA
+
+-------
+
+
+GeneCII --> PRE --> TR1 --> NUTR --> GeneCro --> PR --> PRM --> GeneCI 
+
+-------
+
+MOI  =  10
+
+GeneCII	297	nt	LEFT	Gene		ProtDataCII
+PRE	59	nt	RIGHT	Promotor	PromDataPRE
+TR1	16	nt	LEFT	Terminator	TermDataTR1
+NUTR	33	nt	LEFT	AntiTerminator	ATermDataNUTR
+GeneCro	227	nt	LEFT	Gene		ProtDataCro
+PR	32 	nt	LEFT	Promotor	PromDataPR
+PRM	32 	nt	RIGHT	Promotor	PromDataPRM
+GeneCI	724	nt	RIGHT	Gene		ProtDataCI
+

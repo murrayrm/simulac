@@ -47,7 +47,7 @@ extern int DebugLevel;
  *
  *************/
 
-extern void *rcalloc(size_t,size_t,char *);
+extern void *rcalloc(size_t,size_t,char[]);
 extern void *rrealloc(void *,size_t,size_t,char *);
 extern char *PrintDNAType(int);
 extern char *FindReactionType(int);

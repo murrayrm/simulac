@@ -1,0 +1,45 @@
+3 40
+
+___ 	___ 	___	-0.0
+
+___	___	CICI 	-11.7
+___	CICI	___	-10.1
+CICI	___	___	-10.1	
+___	___	CroCro	-10.8	
+___	CroCro	___	-10.8
+CroCro	___	___	-12.1
+RNAP	___	___	-11.5
+___	___	RNAP	-12.5
+
+___	CICI	CICI	-23.7
+CICI	___	CICI	-21.8
+CICI	CICI	___	-22.2
+___	CroCro	CroCro	-21.6
+CroCro	___	CroCro	-22.9
+CroCro	CroCro	___	-22.9
+RNAP	___	RNAP	-24.0
+___	CroCro	CICI	-22.5
+___	CICI	CroCro	-20.9
+CICI	___	CroCro	-20.9
+CroCro	___	CICI	-23.8
+CICI	CroCro	___	-20.9
+CroCro	CICI	___	-22.2
+CICI	___	RNAP	-22.6
+RNAP	CICI	___	-21.6
+RNAP	___	CICI	-23.2
+CroCro	___	RNAP	-24.6
+RNAP	CroCro	___	-22.3
+RNAP	___	CroCro	-22.3
+
+CICI	CICI	CICI	-33.8
+CroCro	CroCro	CroCro	-33.7
+CroCro	CICI 	CICI	-35.8	
+CICI	CroCro 	CICI	-32.6	
+CICI	CICI	CroCro	-33.0
+CICI	CroCro	CroCro	-31.7
+CroCro	CICI	CroCro	-33.0	
+CroCro	CroCro 	CICI	-34.6
+RNAP	CICI	CICI	-35.2
+RNAP	CroCro	CroCro	-33.1
+RNAP	CroCro	CICI	-34.0
+RNAP	CICI	CroCro	-32.4

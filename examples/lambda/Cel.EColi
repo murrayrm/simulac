@@ -1,0 +1,16 @@
+% E. Coli Cell Parameters
+%
+% Volumes in liters
+%
+% GrowthRate in 10^-18 liters/sec
+%
+%
+
+TYPE=   Cell
+
+-------
+
+
+VI=         1e-15
+V0=         1.41e-15
+GrowthRate= 0.4762
