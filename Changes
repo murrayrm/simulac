@@ -1,4 +1,8 @@
-RMM, 23 Jan 10: added -p, --pops option to turn on PoPs output
+RMM, 23 Jan 10: minor updates
+  * added -p, --pops option to turn on PoPs output
+  * fixed Makefile dependencies for cmdline.[ch]
+  * created Pending file and moved Changes to trunk
+  * updated OpenFile to check for SIMULAC_CONFDIR and search there for files
 
 RMM, 19 Nov 09: added code to track transcript initiation
   * Added new list of promoters + extra data elements
