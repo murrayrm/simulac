@@ -119,6 +119,14 @@ char **argv;
 #ifdef RMM_MODS
   /* Command line argument parsing */
   if (cmdline_parser(argc, argv, &args_info) != 0) exit(1);
+
+  /* See if the user wants some help with options */
+  if (args_info.help_given) {
+    cmdline_parser_print_help();
+    exit(1);
+  }
+
+  /* Make sure we got enough input arguments */
   if (args_info.inputs_num < 3 || args_info.inputs_num > 4) {
     fprintf(stderr, "%s\n", gengetopt_args_info_usage);
     exit(1);
@@ -293,21 +301,47 @@ char **argv;
    ********************/
 
 #ifdef RMM_MODS
-  if (args_info.header_flag) {
+  if (args_info.long_header_flag) {
+    /* Print out parameters governing the simulation */
+    fprintf(stdout, "%% sl_config_file = '%s';\n", args_info.inputs[0]);
+    fprintf(stdout, "%% sl_maxtime = %s;\n", args_info.inputs[1]);
+    fprintf(stdout, "%% sl_stepsize = %s;\n", args_info.inputs[2]);
+    fprintf(stdout, "%% sl_seed = %ld;\n", SEED);
+
+    /* Print the column indices for the output file */
+    int col = 0;
+    fprintf(stdout, "%% sl_time_index = %d;\n", col++);
+    for (i = 0; i < NSpecies; ++i) 
+      fprintf(stdout, "%% sl_species_%s_index = %d;\n", SpeciesName[i], col++);
+    fprintf(stdout, "%% sl_volume_index = %d;\n", col++);
+    for (i=0 ; i < NOperators; ++i)
+      fprintf(stdout, "%% sl_operator_%s_index = %d;\n",
+	      Operator[i].Name, col++);
+    if (args_info.pops_given) {
+      for (i = 0; i < NPromotors; ++i)
+	fprintf(stdout, "%% sl_promoter_%s_index = %d;\n",
+		Promotor[i]->Name, col++);
+    }
+
+  } else if (args_info.header_flag) {
 # endif
-  fprintf(stdout,"%% Time\tNR\tRPQ\t");
-  for(i=0;i<NSpecies;i++)
-    fprintf(stdout,"%6s\t",SpeciesName[i]);
-  fprintf(stdout,"%6s\t","Volume");
-  for(i=0;i<NOperators; i++)
-    fprintf(stdout,"%6s\t",&Operator[i].Name[8]);
+    fprintf(stdout,"%% Time\tNR\tRPQ\t");
+    for(i=0;i<NSpecies;i++)
+      fprintf(stdout,"%6s\t",SpeciesName[i]);
+    fprintf(stdout,"%6s\t","Volume");
+    for(i=0;i<NOperators; i++)
+      fprintf(stdout,"%6s\t",&Operator[i].Name[8]);
 #ifdef RMM_MODS
-  /* RNAP counts */
-  for (i = 0; i < NPromotors; ++i)
-      fprintf(stdout, "%6s-RNAP\t", Promotor[i]->Name);
+    /* RNAP counts */
+    if (args_info.pops_given) {
+      for (i = 0; i < NPromotors; ++i)
+	fprintf(stdout, "%6s-RNAP\t", Promotor[i]->Name);
+    }
+    fprintf(stdout,"\n");
   }
-# endif
+# else
   fprintf(stdout,"\n");
+#endif
 
   WriteSpeciesState(0.0,0,0.0);
   Time=0.0;
