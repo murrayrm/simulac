@@ -688,7 +688,11 @@ char *mech;
     fseq= &Sequence[firstcopy];
 
     sequence->Name= (char *) rcalloc(strlen(fseq->Name)+4+1,sizeof(char),"ReadDNA.11");
+#   ifdef RMM_MODS
+    sprintf(sequence->Name,"%s_%d",fseq->Name,i);
+#   else
     sprintf(sequence->Name,"%s.%d",fseq->Name,i);
+#   endif
     sequence->Length       = fseq->Length;
     sequence->Direction    = fseq->Direction;
     sequence->Type         = fseq->Type;
@@ -699,7 +703,11 @@ char *mech;
 
       sequence->RightSegment= (DNA *) rcalloc(1,sizeof(DNA),"ReadDNA.12");
       sequence->RightSegment->Name= (char *) rcalloc(strlen(fseq->Name)+4+1,sizeof(char),"ReadDNA.13");
+#     ifdef RMM_MODS
+      sprintf(sequence->RightSegment->Name,"%s_%d",fseq->Name,i);
+#     else
       sprintf(sequence->RightSegment->Name,"%s.%d",fseq->Name,i);
+#     endif
       sequence->RightSegment->Length       = fseq->Length;
       sequence->RightSegment->Direction    = fseq->Direction;
       sequence->RightSegment->Type         = fseq->Type;
@@ -729,10 +737,14 @@ char *mech;
    
    for(j=0; j<rflag; j++){
 
+#    ifdef RMM_MODS
+     sprintf(buffer, i > 0 ? "%s_%d" : "%s", name[j], i);
+#    else
      if(i>0)
        sprintf(buffer,"%s.%d",name[j],i);
      else 
        sprintf(buffer,"%s",name[j]);
+#    endif
 
      sequence= &Sequence[firstcopy+i];
      while(sequence!=NULL && strcmp(sequence->Name,buffer)!=0)
@@ -940,7 +952,11 @@ char      *params;
     exit(-1);
   }
 
+# ifdef RMM_MODS
+  sprintf(token3, "%s_%d", token2, copy);
+# else
   sprintf(token3,"%s.%d",token2,copy);
+# endif
 
   /* Look to see if we have already read this operator file */
   for(i=0; i<NOperators; i++)
@@ -995,7 +1011,11 @@ char *file;
   NOperators++;
     
   oper->Name= (char *) rcalloc(strlen(file)+1+4,sizeof(char),"ReadSheaAckers.2");
+# ifdef RMM_MODS
+  sprintf(oper->Name, "%s_%d", file, copy);
+# else
   sprintf(oper->Name,"%s.%d",file,copy);
+# endif
 
   fp=OpenFile(file,"r");
 
