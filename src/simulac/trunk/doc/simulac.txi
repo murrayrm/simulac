@@ -1,0 +1,35 @@
+\input etexinfo                 @c -*- texinfo -*-
+@setfilename simulac.info
+@settitle Simulac Reference Manual
+
+@titlepage
+@center @titlefont{Simulac Reference Manual}
+@sp 1
+@center Version 1.0.0
+@center 14 March 2010
+@sp 2
+@center Richard M. Murray
+@sp 1
+@center Division of Engineering and Applied Science
+@center California Institute of Technology
+@center Pasadena, CA 91125
+@center murray@@cds.caltech.edu
+@sp 2
+
+@finalout
+@c @setchapternewpage odd
+@end titlepage
+
+@c The Top node is only used in the online version
+@node Top,,,(DIR)
+
+@ifinfo
+@example
+                    *** Simulac Reference Manual ***
+                              Version 1.0.0
+@end example
+@end ifinfo
+
+Simulac is a biocircuit simulation program.
+
+@bye
