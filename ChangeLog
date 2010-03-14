@@ -1,3 +1,5 @@
+RMM, 14 Mar 10: added config files for using GNU autoconf
+
 RMM, 23 Jan 10: minor updates
   * added -p, --pops option to turn on PoPs output
   * fixed Makefile dependencies for cmdline.[ch]
