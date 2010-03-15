@@ -1,3 +1,7 @@
+RMM, 14 Mar 10: added MATLAB setup file output
+ * Use --matlab-setup to generate .m file with parameters, indices
+ * Got rid of --long-headers, since this essentially covers that
+	
 RMM, 14 Mar 10: added config files for using GNU autoconf
 
 RMM, 23 Jan 10: minor updates
