@@ -1,0 +1,10 @@
+README file for MATLAB scripts
+RMM, 11 March 2010
+
+This directory contains some MATLAB scripts that can be used to
+perform batch runs of simulac and read the results back into MATLAB in
+a form useful for printing.  The following scripts are available:
+
+* runsim.m - simple script showing how to do a single run
+* runbatch.m - script showing how to generate a batch of simulations
+
