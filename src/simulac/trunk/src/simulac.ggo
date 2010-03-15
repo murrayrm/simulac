@@ -8,7 +8,7 @@ option "rate"   r  "rate parameter, kNN=val (float)" string optional multiple
 option "volume" v  "initial cell volume, (0-1]" float optional
 option "growth" g  "cell growth rate, (0-1]" float optional
 option "header" h  "print header row in output file" flag on 
-option "long-header" H  "print long header row output file" flag off
 option "moi"	m  "multiplicity of infection" int optional
 option "single" s  "single cell mode; turn off cell division" flag off
 option "pops"   p  "output transcription initiations" flag off
+option "matlab-setup" - "generate a MATLAB setup script" string optional

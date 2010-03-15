@@ -28,6 +28,7 @@
 
 /* Modifications by R. M. Murray, 1 Oct 09 */
 #ifdef RMM_MODS
+#include <time.h>
 #include "cmdline.h"
 struct gengetopt_args_info args_info;
 #endif
@@ -294,36 +295,63 @@ char **argv;
     fprintf(stderr,"@@@ NSpecies    = %d\n", NSpecies);
   }
 
-  /********************
+  /* 
+   * Print out headers and setup files
    *
-   * Main Loop 
-   *
-   ********************/
-
+   */
 #ifdef RMM_MODS
-  if (args_info.long_header_flag) {
+  FILE *matlab_fp = NULL;
+
+  /* Check to see if we should generate setup scripts */
+  if (args_info.matlab_setup_given) {
+    fprintf(stderr, "Generating MATLAB setup script '%s'\n",
+	    args_info.matlab_setup_arg);
+
+    /* Open up the file for writing (overwrite mode) */
+    if ((matlab_fp = fopen(args_info.matlab_setup_arg, "w")) == NULL) { 
+      perror(args_info.matlab_setup_arg); 
+      exit(-1); 
+    }
+
+    /* Print out some header information */
+    time_t curtime = time(NULL);
+    fprintf(matlab_fp, "%% Simulac MATLAB setup file\n");
+    fprintf(matlab_fp, "%% Run generated: %s", ctime(&curtime));
+   
     /* Print out parameters governing the simulation */
-    fprintf(stdout, "%% sl_config_file = '%s';\n", args_info.inputs[0]);
-    fprintf(stdout, "%% sl_maxtime = %s;\n", args_info.inputs[1]);
-    fprintf(stdout, "%% sl_stepsize = %s;\n", args_info.inputs[2]);
-    fprintf(stdout, "%% sl_seed = %ld;\n", SEED);
+    fprintf(matlab_fp, "\n%% Simulation parameters\n" );
+    fprintf(matlab_fp, "sl_config_file = '%s';\n", args_info.inputs[0]);
+    fprintf(matlab_fp, "sl_maxtime = %s;\n", args_info.inputs[1]);
+    fprintf(matlab_fp, "sl_stepsize = %s;\n", args_info.inputs[2]);
+    fprintf(matlab_fp, "sl_seed = %ld;\n", SEED);
+
+    /* Print out information about the number of objects of each type */
+    fprintf(matlab_fp, "\n%% System size\n" );
+    fprintf(matlab_fp, "sl_n_species = %d;\n", NSpecies);
+    fprintf(matlab_fp, "sl_n_operators = %d;\n", NOperators);
+    fprintf(matlab_fp, "sl_n_promoters = %d;\n", NPromotors);
 
     /* Print the column indices for the output file */
+    fprintf(matlab_fp, "\n%% Data indices\n" );
     int col = 0;
-    fprintf(stdout, "%% sl_time_index = %d;\n", col++);
+    fprintf(matlab_fp, "sl_time_index = %d;\n", col++);
     for (i = 0; i < NSpecies; ++i) 
-      fprintf(stdout, "%% sl_species_%s_index = %d;\n", SpeciesName[i], col++);
-    fprintf(stdout, "%% sl_volume_index = %d;\n", col++);
+      fprintf(matlab_fp, "sl_species_%s_index = %d;\n", SpeciesName[i], col++);
+    fprintf(matlab_fp, "sl_volume_index = %d;\n", col++);
     for (i=0 ; i < NOperators; ++i)
-      fprintf(stdout, "%% sl_operator_%s_index = %d;\n",
+      fprintf(matlab_fp, "sl_operator_%s_index = %d;\n",
 	      Operator[i].Name, col++);
     if (args_info.pops_given) {
       for (i = 0; i < NPromotors; ++i)
-	fprintf(stdout, "%% sl_promoter_%s_index = %d;\n",
+	fprintf(matlab_fp, "sl_promoter_%s_index = %d;\n",
 		Promotor[i]->Name, col++);
     }
+    
+    /* Close up the file */
+    fclose(matlab_fp);
+  }
 
-  } else if (args_info.header_flag) {
+  if (args_info.header_flag) {
 # endif
     fprintf(stdout,"%% Time\tNR\tRPQ\t");
     for(i=0;i<NSpecies;i++)
@@ -342,6 +370,12 @@ char **argv;
 # else
   fprintf(stdout,"\n");
 #endif
+
+  /********************
+   *
+   * Main Loop 
+   *
+   ********************/
 
   WriteSpeciesState(0.0,0,0.0);
   Time=0.0;
