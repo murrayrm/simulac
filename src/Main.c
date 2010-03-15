@@ -333,8 +333,10 @@ char **argv;
 
     /* Print the column indices for the output file */
     fprintf(matlab_fp, "\n%% Data indices\n" );
-    int col = 0;
+    int col = 1;
     fprintf(matlab_fp, "sl_time_index = %d;\n", col++);
+    fprintf(matlab_fp, "sl_NR_index = %d;\n", col++);
+    fprintf(matlab_fp, "sl_RPQ_index = %d;\n", col++);
     for (i = 0; i < NSpecies; ++i) 
       fprintf(matlab_fp, "sl_species_%s_index = %d;\n", SpeciesName[i], col++);
     fprintf(matlab_fp, "sl_volume_index = %d;\n", col++);

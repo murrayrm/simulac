@@ -4,7 +4,7 @@
 % Usage: arkin_fig3(dir)
 %
 
-function arkin_fig3(dir)
+dir = 'data';
 
 % Load the parameters that define the simulation
 filename = [dir, '/lambda_setup'];
@@ -19,10 +19,10 @@ if (exist([filename, '.m'], 'file'))
 end
 
 % Define a few shorter symbols for indices
-sl_time = sl_time_index + 1 ;
-sl_vol = sl_volume_index + 1;
-sl_CI2 = sl_species_CICI_index + 1;
-sl_Cro2 = sl_species_CroCro_index + 1;
+sl_time = sl_time_index;
+sl_vol = sl_volume_index;
+sl_CI2 = sl_species_CICI_index;
+sl_Cro2 = sl_species_CroCro_index;
 
 % Initilize the plot
 clf; subplot(221); 
@@ -38,7 +38,12 @@ for run = 1:length(parlist)
     fprintf(1, 'Loading %s\n', filename);
     
     % Load the results of the simulation
-    simulac = load(filename);
+    if (exist(filename, 'file'))    
+      simulac = load(filename);
+    else
+      fprintf(2, '  missing file: %s\n', filename);
+      continue;
+    end
     
     % Determine the fate
     runfate(row) = fate(simulac, 10, 1);
