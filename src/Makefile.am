@@ -9,8 +9,10 @@ bin_PROGRAMS = Simulac
 
 # Rules for building simulator
 Simulac_SOURCES = Main.c Util.c Memory.c Kinetics.c PromotorDynamics.c \
-  SegmentDynamics.c ReactionManager.c ParseDataBase.c CellManager.c cmdline.c
-BUILT_SOURCES = cmdline.c
+  SegmentDynamics.c ReactionManager.c ParseDataBase.c CellManager.c \
+  DataStructures.h Memory.h Util.h \
+  simulac.ggo cmdline.c cmdline.h
+BUILT_SOURCES = cmdline.c cmdline.h
 
 # Rule for creating gengetopt files
 cmdline.h cmdline.c: simulac.ggo
