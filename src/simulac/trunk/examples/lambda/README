@@ -3,8 +3,10 @@ RMM, 11 March 2010
 
 This directory contains some MATLAB scripts that can be used to
 perform batch runs of simulac and read the results back into MATLAB in
-a form useful for printing.  The following scripts are available:
+a form useful for printing.  The following scripts are available in
+the main directory:
 
-* runsim.m - simple script showing how to do a single run
-* runbatch.m - script showing how to generate a batch of simulations
-
+* gensims_moi.m - run simulations at different MOI values
+* gensims_vol.m - run simulations with different cell volumes
+* arkin_fig3.m - generate plots similar to Arkin et al, Fig 3
+* fstp_fig3.m - generate plots similar to St. Pierre and Endy, Fig 3

@@ -1,4 +1,4 @@
-% Simple MATLAB script to run a batch of simulations
+% MATLAB script to run a batch of simulations varying cell volume
 % RMM, 11 March 2010
 % 
 % This script illustrates how to run a batch of simulations and vary
@@ -17,10 +17,11 @@ Ntrials = 10;				% number of trials per parameter value
 parlist = linspace(0.4, 2, 10);		% values of the parameters to use
 
 % Some parameters that define where things live
-simulac = '../../src/Simulac';		% location of simulac executable
-datadir = './data';			% directory for storing output
+simulac = 'Simulac';			% name/location of simulac executable
+datadir = './data-vol';			% directory for storing output
 confdir = './config';			% directory with system description
 basename = 'lambda';			% base name for simulation files
+overwrite = 1;				% overright files if they exist
 
 % Create a command that will be executed for each parameter/trial
 % Update the path to Simulac as needed on your system
@@ -28,7 +29,7 @@ basename = 'lambda';			% base name for simulation files
 simcmd = [...
   simulac...				% Command name
   ' -v %g'...				% Argument to vary
-  ' --matlab-setup=' datadir '/lamdba_setup.m'...	% generate setup file
+  ' --matlab-setup=' datadir '/lambda_setup.m'...	% generate setup file
   ' Outline.Lambda'...			% system description
   ' %d %d'...				% time params (set in loop)
   ' > ' datadir '/%s'...		% location to sae output
@@ -56,6 +57,12 @@ for run = 1:length(parlist)
   for trial = 1:Ntrials
     % Figure out the filename to use for output
     outfile = sprintf('%s-%c%d.dat', basename, 'a'+run-1, trial);
+    
+    % See if the data file already exists
+    if (exist([datadir '/' outfile], 'file') && ~overwrite) 
+      fprintf(2, 'Skipping %s\n', outfile);
+      continue;
+    end
 
     % Generate the command to run
     cmd = sprintf(simcmd, parlist(run), Tmax, Tprint, outfile);

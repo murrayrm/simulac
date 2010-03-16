@@ -1,3 +1,7 @@
+RMM, 15 Mar 10: fixed up autoconf configuration
+  * Set up proper files for distribution, include examples
+  * Updated scripts and README files
+
 RMM, 14 Mar 10: reorganized lambda example
   * Moved configuration files to config/ subdir
   * Added sample MATLAB scripts for running simulations and printing data

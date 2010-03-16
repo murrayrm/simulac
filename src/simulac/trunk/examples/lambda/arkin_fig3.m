@@ -4,18 +4,25 @@
 % Usage: arkin_fig3(dir)
 %
 
-dir = 'data';
+% Location of the data directory that we want to use
+datadir = 'data-vol';
 
 % Load the parameters that define the simulation
-filename = [dir, '/lambda_setup'];
+filename = [datadir, '/lambda_setup'];
 if (exist([filename, '.mat'], 'file'))
   load(filename);			% load MAT file from runbatch
 end
 if (exist([filename, '.m'], 'file'))
   savedir = pwd;			% save our current location
-  cd (dir);				% go into the data directory
+  cd (datadir);				% go into the data directory
   lambda_setup;				% load indices from simulac
   cd (savedir)				% return to original directory
+end
+
+% Make sure we have access to functions we need
+if (exist('ciplot') ~= 2)
+  fprintf(2, 'ciplot not in path; check MATLAB PATH')
+  return
 end
 
 % Define a few shorter symbols for indices
@@ -27,14 +34,16 @@ sl_Cro2 = sl_species_CroCro_index;
 % Initilize the plot
 clf; subplot(221); 
 title('All cells, individual runs');
+xlabel('Time (min)');
+ylabel('Raw values');
 
 % Run through all of the data
-row = 1;				% keep track of good data
+row = 0;				% keep track of good data
 clear runfate;
 for run = 1:length(parlist)
   for trial = 1:Ntrials
     % Create the filename
-    filename = sprintf('%s/%s-%c%d.dat', dir, basename, 'a'+run-1, trial);
+    filename = sprintf('%s/%s-%c%d.dat', datadir, basename, 'a'+run-1, trial);
     fprintf(1, 'Loading %s\n', filename);
     
     % Load the results of the simulation
@@ -45,11 +54,8 @@ for run = 1:length(parlist)
       continue;
     end
     
-    % Determine the fate
-    runfate(row) = fate(simulac, 10, 1);
-    
     % Save the results we want
-    if (row == 1)
+    if (row == 0)
       % Initialize the data matrices; rows = data, cols = run
       ci2 = (simulac(:, sl_CI2) ./ simulac(:, sl_vol))';
       cro2 = (simulac(:, sl_Cro2) ./ simulac(:, sl_vol))';
@@ -63,6 +69,7 @@ for run = 1:length(parlist)
 	% Incomplete run; just ignore it
 	fprintf(2, '  inconsistent length: %d was %d => ignored\n', ...
 	  size(simulac(:, sl_time), 1), size(ci2, 2));
+	continue;	  
       else
 	ci2 = vertcat(ci2, (simulac(:, sl_CI2) ./ simulac(:, sl_vol))');
 	cro2 = vertcat(cro2, (simulac(:, sl_Cro2) ./ simulac(:, sl_vol))');
@@ -70,9 +77,12 @@ for run = 1:length(parlist)
       end
     end
     
+    % Determine the fate
+    runfate(row) = fate(simulac, 10, 1);
+    
     % Plot the results
-    plot(simulac(:,sl_time)/60, simulac(:,sl_CI2)/simulac(:,sl_vol), 'b', ...
-      simulac(:,sl_time)/60, simulac(:,sl_Cro2)/simulac(:,sl_vol), 'g', ...
+    plot(simulac(:,sl_time)/60, simulac(:,sl_CI2), 'b', ...
+      simulac(:,sl_time)/60, simulac(:,sl_Cro2), 'g', ...
       simulac(:,sl_time)/60, simulac(:,sl_vol)*10, 'r');
     hold on;
   end

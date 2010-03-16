@@ -32,4 +32,94 @@
 
 Simulac is a biocircuit simulation program.
 
+
+Running from MATLAB
+-------------------
+
+The following code illustrates how to run a simulation in MATLAB, read the
+results back in and print a graph of the simulation results:
+
+<tt>
+% Simple MATLAB script to run a simulation
+% RMM, 29 Sep 09
+
+% Run a simulation
+system('Simulac Outline.Lambda 2000 10 > simulac.dat');
+
+% Load the results of the simulation and plot them
+data = load('simulac.dat');
+
+% Data file indices
+sl_time = 1;				% simulation time
+sl_CI2 = 9;				% CI2 concentration, nanomoles
+sl_Cro2 = 10;				% Cro2 concentration
+sl_vol = 19;				% Cell volume
+
+% Generate a plot similar to Figure 3 in Arkin, Ross, McAdams
+plot(data(:,sl_time)/60, data(:,sl_CI2)/data(:,sl_vol), ...
+     data(:,sl_time)/60, data(:,sl_Cro2)/data(:,sl_vol), ...
+     data(:,sl_time)/60, (data(:,19) - 1)*10)
+xlabel('Time (min)'); ylabel('Nanomolar');
+legend('CI2', 'Cro2', 'Vol', 'Location', 'NorthWest')
+</tt>
+
+== Running from python ==
+
+The following code illustrates how to run a simulation in python, read the
+results back in and print a graph of the simulation results:
+
+Running a simulation:
+<tt>
+# Simple python script to run some simulations
+# RMM, 7 Oct 09
+from os import system, stat
+from matplotlib.mlab import load
+
+# Run a simulation
+system('../src/Simulac Outline.Lambda 2000 10 3 > simulac.dat');
+
+# Load the results of the simulation and plot them
+data = load('simulac.dat', comments='%')
+</tt>
+
+Plotting the results of a simulation: missing
+
+To run a batch of simulations, changing parameters such as cell volume for
+each run, the following code can be used:
+<tt>
+# Python script to generate Figure 3 in St Pierre, Endy 2008
+# RMM, 7 Oct 09
+
+# Include some function we will need
+import os
+from os import system, stat, putenv
+from numpy import linspace
+
+# Set the location of the main configuration files
+putenv('SIMULAC_CONFDIR', '../config');
+
+# Parameters to define the simulation runs
+Nvolumes = 10
+Ntrials = 40
+Trial0 = 0
+Volumes = linspace(0.4, 2, Nvolumes)
+Labels = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
+
+# Run a bunch of simulations for different cell volumes
+for i in range(Volumes.size):
+    for trial in range(Ntrials):
+
+        # Create the file name for the simulation
+        filename = "simulac-" + Labels[i] + str(trial+Trial0) + ".dat"
+
+        # See if the file already exists
+        if (os.path.exists(filename)):
+            print filename, "already exists; skipping"
+
+        else:
+            # Run the simulation
+            system("Simulac -p -s -v " + str(Volumes[i]) +
+                   " Outline.Lambda 2000 10 > " + filename);
+</tt>
+
 @bye
