@@ -21,7 +21,7 @@ simulac = 'Simulac';			% name/location of simulac executable
 datadir = './data-vol';			% directory for storing output
 confdir = './config';			% directory with system description
 basename = 'lambda';			% base name for simulation files
-overwrite = 1;				% overright files if they exist
+overwrite = 0;				% overright files if they exist
 
 % Create a command that will be executed for each parameter/trial
 % Update the path to Simulac as needed on your system
