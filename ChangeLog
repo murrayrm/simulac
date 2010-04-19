@@ -1,3 +1,14 @@
+RMM, 19 Apr 10: added code for ribosome binding strength
+  * RibosomeBindingRate can now be set for individual GENE
+  * Use RibosomeBindingRate at end of ProtData file
+
+RMM, 5 Apr 10: Added code for non-anti-terminated terminators
+  * Checks to see if first entry is TermModifier or not
+  * *Should* work with existing reaction dynamics
+	
+RMM, 5 Apr 10: Allow proper spelling of promoter
+  * Updated ParseDatabase to allow "Promotor" or "Promoter"
+
 RMM, 15 Mar 10: fixed up autoconf configuration
   * Set up proper files for distribution, include examples
   * Updated scripts and README files
