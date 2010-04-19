@@ -638,7 +638,7 @@ char *mech;
      **** Full Copies of Shea data must be made
      ****/
 
-    if(strcasecmp(type,"Promotor")==0)
+    if(strcasecmp(type,"Promotor")==0 || strcasecmp(type,"Promoter")==0)
       sequence->Type= DNA_Type_Promotor;
     else
       if(strcasecmp(type,"Terminator")==0)
@@ -788,8 +788,10 @@ char *mech;
        seg->RNAPQueue=NULL;
        seg->SegmentFunc=SubmitTermination;
        if(i==0)
+	 // Read data for the first copy of the DNA only
 	 ReadTerminatorData(seg,parameters[j]);
        else
+	 // For MOI > 1, just save a pointer to the parameters
 	 seg->SegmentData= (void *) FindSegData(&Sequence[firstcopy],name[j]);
        break;
 
@@ -1149,21 +1151,42 @@ char     *params;
   
   fgets(token3,81,fp);
   while(token3[0]== '%' || isspace(token3[0]))  fgets(token3,81,fp);
-  
+
+  /* Scan the first line of the file */
   sscanf(token3,"%s %*s %s",token1,token2);
 
-  if(strcasecmp(token1,"TermModifier")!=0){
-    fprintf(stderr,"%s: First Token in a terminator data file MUST be TermModifier.\n",progid);
-    fprintf(stderr,"%s: You have a %s token in parameter file %s.\n",progid,token1,params);
-    exit(-1);
+  /* 
+   * Check to see if there is a terminator modifier.  If not, then set
+   * things up so that this can't anti-terminated and just read the
+   * base rates.  Otherwise, read termination data.
+   *
+   */
+  int antiterminated = 0;
+  if(strcasecmp(token1, "TermModifier") == 0) {
+    fprintf(stderr, "%s: Reading anti-terminator modification\n", progid);
+
+    /* Read the species for the modifier */
+    tdata->SpeciesIndex = FindSpecies(token2);
+    if (tdata->SpeciesIndex == NSpecies) AddSpecies(token2);
+
+    /* Read in the next record */
+    fscanf(fp, "%s %*s %s %s", token1, token2, token3);
+
+    antiterminated = 1;
+  } else {
+    fprintf(stderr, "%s: Unmodified terminator\n", progid);
+
+    /* Rescan the line for BaseFallOffRate */
+#   warning Unsafe usage of sscanf
+    sscanf(token3, "%s %*s %s %s", token1, token2, token3);
+
+    /* Initialize items that are not used for regular terminators */
+    tdata->SpeciesIndex = -1;
+    tdata->AntiTerminatedFallOffRate = 0;
+    tdata->AntiTerminatedRNAPMotion = 0;
+
+    antiterminated = 0;
   }
-
-
-  tdata->SpeciesIndex= FindSpecies(token2);
-  if(tdata->SpeciesIndex==NSpecies) AddSpecies(token2);
-
-
-  fscanf(fp,"%s %*s %s %s",token1,token2,token3);
 
   if(strcasecmp(token1,"BaseFallOffRate")!=0){
     fprintf(stderr,"%s: Second Token in a terminator data file MUST be BaseFallOffRate.\n",progid);
@@ -1215,55 +1238,57 @@ char     *params;
   tdata->BaseRNAPMotion *= mult;
 
 
-  fscanf(fp,"%s %*s %s %s",token1,token2,token3);
+  if (antiterminated) {
+    fscanf(fp,"%s %*s %s %s",token1,token2,token3);
 
-  if(strcasecmp(token1,"AntiTerminatedFallOffRate")!=0){
-    fprintf(stderr,"%s: Fourth Token in a terminator data file MUST be AntiTerminatedFallOffRate.\n",progid);
-    fprintf(stderr,"%s: You have a %s token in parameter file %s.\n",progid,token1,params);
-    exit(-1);
-  }
+    if(strcasecmp(token1,"AntiTerminatedFallOffRate")!=0){
+      fprintf(stderr,"%s: Fourth Token in a terminator data file MUST be AntiTerminatedFallOffRate.\n",progid);
+      fprintf(stderr,"%s: You have a %s token in parameter file %s.\n",progid,token1,params);
+      exit(-1);
+    }
   
-  if(isdigit(token2[0])==0){
-    fprintf(stderr,"%s: First argument of AntiTerminatedFallOffRate is not a number.\n",progid);
-    fprintf(stderr,"%s: You have a %s token in parameter file %s.\n",progid,token2,params);
-    exit(-1);
+    if(isdigit(token2[0])==0){
+      fprintf(stderr,"%s: First argument of AntiTerminatedFallOffRate is not a number.\n",progid);
+      fprintf(stderr,"%s: You have a %s token in parameter file %s.\n",progid,token2,params);
+      exit(-1);
+    }
+
+    tdata->AntiTerminatedFallOffRate= atof(token2);
+
+    mult= FindTimeUnit(token3);
+    if(mult<0.0){
+      fprintf(stderr,"%s: Illegal time unit %s found for AntiTerminatedFallOffRate in termination data file %s.\n",
+	      progid,token3,params);
+      exit(-1);
   }
 
-  tdata->AntiTerminatedFallOffRate= atof(token2);
+    tdata->AntiTerminatedFallOffRate *= mult;
 
-  mult= FindTimeUnit(token3);
-  if(mult<0.0){
-    fprintf(stderr,"%s: Illegal time unit %s found for AntiTerminatedFallOffRate in termination data file %s.\n",
-	    progid,token3,params);
-    exit(-1);
-  }
+    fscanf(fp,"%s %*s %s %s",token1,token2,token3);
 
-  tdata->AntiTerminatedFallOffRate *= mult;
-
-  fscanf(fp,"%s %*s %s %s",token1,token2,token3);
-
-  if(strcasecmp(token1,"AntiTerminatedRNAPMotion")!=0){
-    fprintf(stderr,"%s: Fifth Token in a terminator data file MUST be AntiTerminatedRNAPMotion.\n",progid);
-    fprintf(stderr,"%s: You have a %s token in parameter file %s.\n",progid,token1,params);
-    exit(-1);
-  }
+    if(strcasecmp(token1,"AntiTerminatedRNAPMotion")!=0){
+      fprintf(stderr,"%s: Fifth Token in a terminator data file MUST be AntiTerminatedRNAPMotion.\n",progid);
+      fprintf(stderr,"%s: You have a %s token in parameter file %s.\n",progid,token1,params);
+      exit(-1);
+    }
   
-  if(isdigit(token2[0])==0){
-    fprintf(stderr,"%s: First argument of AntiTerminatedRNAPMotion is not a number.\n",progid);
-    fprintf(stderr,"%s: You have a %s token in parameter file %s.\n",progid,token2,params);
-    exit(-1);
+    if(isdigit(token2[0])==0){
+      fprintf(stderr,"%s: First argument of AntiTerminatedRNAPMotion is not a number.\n",progid);
+      fprintf(stderr,"%s: You have a %s token in parameter file %s.\n",progid,token2,params);
+      exit(-1);
+    }
+
+    tdata->AntiTerminatedRNAPMotion= atof(token2);
+
+    mult= FindTimeUnit(token3);
+    if(mult<0.0){
+      fprintf(stderr,"%s: Illegal time unit %s found for AntiTerminatedRNAPMotion in termination data file %s.\n",
+	      progid,token3,params);
+      exit(-1);
+    }
+
+    tdata->AntiTerminatedRNAPMotion *= mult;
   }
-
-  tdata->AntiTerminatedRNAPMotion= atof(token2);
-
-  mult= FindTimeUnit(token3);
-  if(mult<0.0){
-    fprintf(stderr,"%s: Illegal time unit %s found for AntiTerminatedRNAPMotion in termination data file %s.\n",
-	    progid,token3,params);
-    exit(-1);
-  }
-
-  tdata->AntiTerminatedRNAPMotion *= mult;
   
   fclose(fp);
 }
@@ -1461,7 +1486,30 @@ char     *params;
   }
 
   tdata->mRNADegradationRate *= mult;
-fclose(fp);
+
+# ifdef RMM_MODS
+  /*
+   * Check to see if there is an entry for RBS binding rate
+   */
+
+  /* Set the default values */
+  tdata->RibosomeBindingRate = Rate_Of_Ribosome_Binding;
+
+  /* See if these are overridden in the specification file */
+  while (fscanf(fp, "%s %*s %s %s", token1, token2, token3) != EOF) {
+    /* Check for each optional value in turn */
+    if (strcasecmp(token1, "RibosomeBindingRate") == 0) {
+      fprintf(stderr,"%s: found RibosomeBindingRate: %s\n", progid, token2);
+
+    } else {
+      /* Don't allow any unrecognized tokens to go uncorrected */
+      fprintf(stderr,"%s: unrecognized token: %s\n", progid, token1);
+      exit(1);
+    }
+  }
+# endif
+
+  fclose(fp);
 }
 
 void ReadNonCodingData(seg,params)

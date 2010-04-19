@@ -213,7 +213,9 @@ struct codingdata {
 
   int SpeciesIndex;
   double mRNADegradationRate;
-
+# ifdef RMM_MODS
+  double RibosomeBindingRate;
+# endif
 };
 
 struct antitermdata {
