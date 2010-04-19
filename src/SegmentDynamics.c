@@ -78,7 +78,7 @@ void Polymerize()
     dna= &Sequence[i]; /* Sequences Start with Left-Most Member of Structure */
     
     while(dna!=NULL){
-     
+      /* Process RNAP actions for this segment */
       MoveRNAPs(dna);
       dna= dna->RightSegment;
     }
@@ -103,11 +103,12 @@ void Polymerize()
     }
   }
 
-  trans= Transcript;
+  /* Move ribosomes down the free transcripts */
+  trans = Transcript;
       
-  while(trans!=NULL){
+  while (trans != NULL) {
     MoveRibosomes(trans);
-    trans= trans->NextTranscript;
+    trans = trans->NextTranscript;
   }
 }
        
@@ -393,7 +394,7 @@ RNAP *rnap;
     }else antiterm=0;
 
     if(antiterm==0){
-      
+      // RNAP is not antiterminated - use BaseFallOffRate
       if(tdata->BaseFallOffRate !=0.0){
 	rdata= (MOVERNAP *) AllocMRNAP();
 	
@@ -425,7 +426,7 @@ RNAP *rnap;
       }
     } else {
       
-
+      // RNAP is antiterminated => use AntiTerminatedFallOffRate
       if(tdata->AntiTerminatedFallOffRate!=0.0){
 
 	rdata= (MOVERNAP *) AllocMRNAP();
@@ -1166,8 +1167,16 @@ mRNA    *trans;
   reaction->Type=         Reaction_Type_BindRibosome;
   reaction->ReactionData= (void *) rdata;
   reaction->ReactionFunc= BindRibosome;
+# ifdef RMM_MODS
+  /* Grab the ribosome binding rate from the coding data */
+  seg = (SEGMENT *) trans->Gene->DNAStruct;
+  SegData = (CODINGDATA *) seg->SegmentData;
+  reaction->Probability = SegData->RibosomeBindingRate * Concentration[1] * 
+    (EColi->V0/EColi->V);
+# else
   /* DeFacto Bimolecular: Volume Element Included */
   reaction->Probability=  Rate_Of_Ribosome_Binding*Concentration[1]*(EColi->V0/EColi->V);
+# endif
 
   SubmitReaction(reaction);  
 

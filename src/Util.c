@@ -97,7 +97,7 @@ int type;
 {
 
   switch(type){
-  case DNA_Type_Promotor:       return("Promotor"); 
+  case DNA_Type_Promotor:       return("Promoter"); 
   case DNA_Type_Coding:         return("Coding"); 
   case DNA_Type_NonCoding:      return("NonCoding"); 
   case DNA_Type_Terminator:     return("Terminator"); 

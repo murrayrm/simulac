@@ -1,0 +1,15 @@
+Simulac README file
+RMM, 17 Mar 2010
+
+Files in this directory:
+
+* Main.c - parse inputs, initialize, loop over reactions
+* CellManager.c - manage cell growth reactions
+* DataStructures.h - main data structures
+* Kinetics.c - Mass action kinetics
+* Memory.c - memory management routines
+* ParseDataBase.c - routines for parsing input files
+* PromotorDynamics - promoter binding + transcription initiation
+* ReactionManager.c - main SSA implementation
+* SegmentDynamics - RNAP, ribosome dynamics + anti-termination, mRNA anti-sense
+* Util.c - various utility functions
