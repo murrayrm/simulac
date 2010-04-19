@@ -340,6 +340,10 @@ For the simulations we ran, the ribosome binding rate was always roughly
 2.0. This format has been changed in the latest verion but it is not
 consistent with the file structures above.
 
+An optional RibosomeBindingRate can be set in the ProtData file by
+adding this to the bottom of the file.  If it is not specified, the
+default value is used.
+
 'TermData' files look like:
 
 <tt>
@@ -367,6 +371,12 @@ these kinetics are only used on the last base of the terminator. All other
 bases are treated like normal DNA. This yields the correct experimental
 results but is probably not how it actually work. (Like any of this is how
 it actually works.... :-/ )
+
+If the TermModifier parameter is not specified, then the terminator is
+assumed not to be anti-terminated.  In this case, the
+AntiTerminatedFallOffRate and AntiTerminatedRNAPMotion parameters
+should be omitted.
+
 
 Finally, 'ATermData' files look like:
 
