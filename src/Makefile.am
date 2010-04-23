@@ -10,7 +10,7 @@ bin_PROGRAMS = Simulac
 # Rules for building simulator
 Simulac_SOURCES = Main.c Util.c Memory.c Kinetics.c PromotorDynamics.c \
   SegmentDynamics.c ReactionManager.c ParseDataBase.c CellManager.c \
-  DataStructures.h Memory.h Util.h \
+  DataStructures.h Memory.h Util.h param.c param.h \
   simulac.ggo cmdline.c cmdline.h
 BUILT_SOURCES = cmdline.c cmdline.h
 
