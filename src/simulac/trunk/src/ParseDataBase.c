@@ -461,7 +461,7 @@ char *mech;
   int i,j;
   int rflag,nflag,moi,length,mult,firstcopy;
   DNA *sequence,*nextsequence;
-  char token[80],buffer[90];
+  char token[80],buffer[1024];
   char unit[30],type[80],direction[10];
   char **name,**parameters;
   SEGMENT  *seg;
@@ -514,16 +514,16 @@ char *mech;
 
   rflag=0;
   nflag=1;
-  fscanf(fp,"%s",token);  
+  fscanf(fp,"%s",buffer);  
   do{
   
-    if(strcmp(token,"-->")==0){
+    if(strcmp(buffer,"-->")==0){
       if(rflag==0){
 	fprintf(stderr,"%s: '-->' cannot be the first token in a dna sequence (%s).\n",progid,mech);
 	exit(-1);
       }
       nflag=1;
-    } else if(strncmp(token,"---",3)==0){
+    } else if(strncmp(buffer,"---",3)==0){
       if(rflag==0){
 	fprintf(stderr,"%s: Null DNA Sequence encountered in mechanism %s.\n",progid,mech);
 	fclose(fp);
@@ -541,7 +541,7 @@ char *mech;
       break;
     } else{ /* Next Piece of DNA */
       if(nflag!=1){
-	fprintf(stderr,"%s: Expected to find '-->' token %s but found %s instead in mechanism %s.\n",progid,(rflag>0 ? "or a Separator" : ""), token,mech);
+	fprintf(stderr,"%s: Expected to find '-->' token %s but found %s instead in mechanism %s.\n",progid,(rflag>0 ? "or a Separator" : ""), buffer,mech);
 	exit(-1);
       }
       if(rflag!=0){
@@ -550,21 +550,21 @@ char *mech;
 	nextsequence->LeftSegment=sequence;
 	nextsequence->RightSegment=NULL;
 	sequence= nextsequence;
-	sequence->Name= (char *) rcalloc(strlen(token)+1+4,sizeof(char),"ReadDNA.4");
+	sequence->Name= (char *) rcalloc(strlen(buffer)+1+4,sizeof(char),"ReadDNA.4");
 	/* Extra 4 in length because we will append a copy-number */
-	strcpy(sequence->Name,token);
+	strcpy(sequence->Name,buffer);
       } else {
 	sequence->RightSegment=NULL;
 	sequence->LeftSegment=NULL;
-	sequence->Name= (char *) rcalloc(strlen(token)+1+4,sizeof(char),"ReadDNA.5"); 
+	sequence->Name= (char *) rcalloc(strlen(buffer)+1+4,sizeof(char),"ReadDNA.5"); 
 	/* Extra 4 in length because we will append a copy-number */
-	strcpy(sequence->Name,token);
+	strcpy(sequence->Name,buffer);
       }
       rflag++;
       nflag=0;
     }
 
-  } while(fscanf(fp,"%s",token)!=EOF);
+  } while(fscanf(fp,"%s",buffer)!=EOF);
      
   if(nflag!= -1) {
     fprintf(stderr,"%s: Premature end-of-file in mechanism %s.\n",progid,mech);
@@ -574,12 +574,22 @@ char *mech;
   /**** Now read the DNA parameters ******/
 
   /* First Get MOI */
+# ifdef RMM_MODS
+  while (fgets(buffer, 81, fp) != NULL) {
+    /* Read until we get a valid parameter setting */
+    if (param_parse_int(buffer, token, &moi) == 0) break;
+  }
+# else
   fscanf(fp,"%s %*s %d",token,&moi);
+# endif
+
+  /* Make sure that we read MOI */
   if(strcmp(token,"MOI")!=0){
     fprintf(stderr,"%s: Expected an MOI token instead of %s in mechanism %s.\n"
 	    ,progid,token,mech);
     exit(-1);
   }
+
 #ifdef RMM_MODS
   /* Reset the MOI using the command line option */
   if (global_MOI != 0 && moi != 1) moi = global_MOI;

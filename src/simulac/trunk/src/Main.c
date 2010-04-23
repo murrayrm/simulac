@@ -29,6 +29,7 @@
 /* Modifications by R. M. Murray, 1 Oct 09 */
 #ifdef RMM_MODS
 #include <time.h>
+#include "param.h"
 #include "cmdline.h"
 struct gengetopt_args_info args_info;
 #endif
@@ -136,6 +137,13 @@ char **argv;
   /* Perform processing of cmdline arguments that affect init/parsing */
   extern int global_MOI;
   if (args_info.moi_given) global_MOI = args_info.moi_arg;
+
+  if (args_info.param_given) {
+    /* Process the command line parameters and store them for later use */
+    if (param_init(args_info.param_given, args_info.param_arg) < 0) 
+      /* If we got a fatal error, stop all processing */
+      exit(1);
+  }
 
 #else
   if (argc!=5) {
