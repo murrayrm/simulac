@@ -577,7 +577,7 @@ char *mech;
 # ifdef RMM_MODS
   while (fgets(buffer, 81, fp) != NULL) {
     /* Read until we get a valid parameter setting */
-    if (param_parse_int(buffer, token, &moi) == 0) break;
+    if (param_parse_string(buffer, token, "%d", &moi) == 0) break;
   }
 # else
   fscanf(fp,"%s %*s %d",token,&moi);
@@ -1479,14 +1479,16 @@ char     *params;
     fprintf(stderr,"%s: You have a %s token in parameter file %s.\n",progid,token1,params);
     exit(-1);
   }
-  
-  if(isdigit(token2[0])==0){
+
+  /* Convert the degradation rate using param package */
+  double value;
+  if(param_parse_value(token2, "%lf", &value) !=0 ) {
     fprintf(stderr,"%s: First argument of mRNADegradationRate is not a number.\n",progid);
     fprintf(stderr,"%s: You have a %s token in parameter file %s.\n",progid,token2,params);
     exit(-1);
   }
 
-  tdata->mRNADegradationRate= atof(token2);
+  tdata->mRNADegradationRate= value;
 
   mult= FindTimeUnit(token3);
   if(mult<0.0){
@@ -1507,9 +1509,18 @@ char     *params;
 
   /* See if these are overridden in the specification file */
   while (fscanf(fp, "%s %*s %s %s", token1, token2, token3) != EOF) {
+    /* Process parameter settings */
+    double value;
+    if (param_parse_value(token2, "%lf", &value) < 0) {
+      fprintf(stderr, "bad format for token '%s': '%s'\n", token1, token3);
+      exit(1);
+    }
+
     /* Check for each optional value in turn */
     if (strcasecmp(token1, "RibosomeBindingRate") == 0) {
-      fprintf(stderr,"%s: found RibosomeBindingRate: %s\n", progid, token2);
+      fprintf(stderr,"%s: found RibosomeBindingRate: %s => %g\n", progid, 
+	      token2, value);
+      tdata->RibosomeBindingRate = value;
 
     } else {
       /* Don't allow any unrecognized tokens to go uncorrected */
