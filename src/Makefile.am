@@ -16,4 +16,4 @@ BUILT_SOURCES = cmdline.c cmdline.h
 
 # Rule for creating gengetopt files
 cmdline.h cmdline.c: simulac.ggo
-	gengetopt -u -i simulac.ggo 
+	gengetopt --conf-parse --unamed-opts -i simulac.ggo 
