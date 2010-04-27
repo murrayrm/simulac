@@ -78,8 +78,8 @@ int param_init(int n, char **params)
   return 0;
 }
 
-/* Set the value of a parameter with type double */
-int param_parse_int(char *str, char *token, int *value)
+/* Set the value of a parameter with type integer */
+int param_parse_string(char *str, char *token, char *fmt, void *value)
 {
 # warning Fixed size character arrays
   char buffer[80];		/* string for storing parsed data */
@@ -105,14 +105,22 @@ int param_parse_int(char *str, char *token, int *value)
     return -1;
   }
 
+  /* Now use the param_parse_value() function to process the rest */
+  return param_parse_value(buffer, fmt, value);
+}
+
+/* Set the value of a parameter with type double */
+int param_parse_value(char *buffer, char *fmt, void *value)
+{
   /* See if this is a command specification or just a number */
   if (buffer[0] != '%') {
     /* Just a number => pass through unchanged */
-    sscanf(buffer, "%d", value);
+    sscanf(buffer, fmt, value);
     return 0;
   }
 
   /* Parse the parameter name and default value */
+# warning Fixed length strings
   char name[80], defval[80];
   if (sscanf(buffer, "%%%[^:]:%s", name, defval) != 2) {
     fprintf(stderr, "param: invavlid format for parameter value ('%s')", 
@@ -121,11 +129,12 @@ int param_parse_int(char *str, char *token, int *value)
   }
 
   /* Look to see if this parameter is in our database */
+  int i;
   fprintf(stderr, "param: searching for '%s'\n", name);
   for (i = 0; i < param_cnt; ++i) {
     if (strcmp(param_tbl[i].name, name) == 0) {
       /* Names matched; return the value */
-      sscanf(param_tbl[i].value, "%d", value);
+      sscanf(param_tbl[i].value, fmt, value);
       fprintf(stderr, "param: matched '%s', returning '%s'\n",
 	      param_tbl[i].name, param_tbl[i].value);
       return 0;
@@ -133,6 +142,7 @@ int param_parse_int(char *str, char *token, int *value)
   }
 
   /* If we didn't find the parameter value in the table, return the default */
-  sscanf(defval, "%d", value);  
+  fprintf(stderr, "param: no match; returning default value '%s'\n", defval);
+  sscanf(defval, fmt, value);  
   return 0;
 }
