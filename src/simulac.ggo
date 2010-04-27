@@ -13,4 +13,4 @@ option "single" s  "single cell mode; turn off cell division" flag off
 option "pops"   p  "output transcription initiations" flag off
 option "matlab-setup" - "generate a MATLAB setup script" string optional
 option "param"  P  "set parameter value" string optional multiple
-
+option "config-file" C "configuration file with additional options" string optional
