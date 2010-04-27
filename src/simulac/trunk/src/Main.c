@@ -134,6 +134,12 @@ char **argv;
     exit(1);
   }
 
+  /* Check to see if a configuration file was given */
+  if (args_info.config_file_given) {
+    struct cmdline_parser_params *params = cmdline_parser_params_init();
+    cmdline_parser_config_file(args_info.config_file_arg, &args_info, params);
+  }
+
   /* Perform processing of cmdline arguments that affect init/parsing */
   extern int global_MOI;
   if (args_info.moi_given) global_MOI = args_info.moi_arg;
