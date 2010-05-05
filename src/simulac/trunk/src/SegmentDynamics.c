@@ -107,8 +107,14 @@ void Polymerize()
   trans = Transcript;
       
   while (trans != NULL) {
+    /* Save the next transcript to look at */
+    mRNA *next = trans->NextTranscript;    
+
+    /* Move the ribosomes (might free up memory for this transcript) */
     MoveRibosomes(trans);
-    trans = trans->NextTranscript;
+
+    /* Move on to next transcript */
+    trans = next;
   }
 }
        
@@ -726,6 +732,7 @@ void *rdata;
       Concentration[rnap->SpeciesIndex[i]]++;
     
     free(rnap->SpeciesIndex);
+    rnap->SpeciesIndex = NULL;
   }
 
   if(rnap->Transcript!=NULL){
@@ -739,6 +746,7 @@ void *rdata;
 	for(i=0; i<rqueue->NBound; i++)
 	  Concentration[rqueue->SpeciesIndex[i]]++;
 	free(rqueue->SpeciesIndex);
+	rqueue->SpeciesIndex = NULL;
       }
 
       if(rqueue->NextRibosome==NULL){
@@ -752,6 +760,7 @@ void *rdata;
       rqueue= rnap->Transcript->RiboQueue;
     }   
     free(rnap->Transcript);
+    rnap->Transcript = NULL;
   }
 
   FreeRNAP(rnap);
@@ -885,6 +894,7 @@ void *rdata;
 	Concentration[rnap->SpeciesIndex[i]]++;
        
        free(rnap->SpeciesIndex);
+       rnap->SpeciesIndex = NULL;
      }
     
      if(rnap->Transcript!=NULL){
@@ -899,7 +909,11 @@ void *rdata;
 	   for(i=0; i<rqueue->NBound; i++)
 	     Concentration[rqueue->SpeciesIndex[i]]++;
 	   
-	   if(rqueue->SpeciesIndex!=NULL) free(rqueue->SpeciesIndex);
+	   if(rqueue->SpeciesIndex!=NULL) {
+	     free(rqueue->SpeciesIndex);
+	     rqueue->SpeciesIndex = NULL;
+	   }
+
 	 }
 	 
 	 if(rqueue->NextRibosome==NULL){
@@ -912,6 +926,7 @@ void *rdata;
        }         
        fprintf(stderr,"%%%%%% Delete Transcript\n");
        free(rnap->Transcript);
+       rnap->Transcript = NULL;
      }
      
      FreeRNAP(rnap);
@@ -1007,15 +1022,21 @@ void *rdata;
   }
   
   
-  if(rnap->NBound==1) free(rnap->SpeciesIndex);
-  else{
-  /***** Compress Array ***/
-
-    if(rnap->NBound>1){
+  if(rnap->NBound==1) {
+    free(rnap->SpeciesIndex);
+    rnap->SpeciesIndex = NULL;
+  } else {
+    /***** Compress Array ***/
+    if (rnap->NBound>1) {
       for(j=i+1; j<rnap->NBound; j++)
 	rnap->SpeciesIndex[j-1]=rnap->SpeciesIndex[j];    
+
       rnap->SpeciesIndex= (int *) rrealloc(rnap->SpeciesIndex,rnap->NBound-1,sizeof(int),"UnAntiterminateRNAP");
-    } else free(rnap->SpeciesIndex);
+    } else {
+      /* RMM: I think this code is unreachable... */
+      free(rnap->SpeciesIndex);
+      rnap->SpeciesIndex = NULL;
+    }
   }
   
   Concentration[tdata->SpeciesIndex] += 1;
@@ -1356,6 +1377,7 @@ void *rdata;
       Concentration[ribosome->SpeciesIndex[i]]++;
     
     free(ribosome->SpeciesIndex);
+    ribosome->SpeciesIndex = NULL;
   }
 
   FreeRibosome(ribosome);

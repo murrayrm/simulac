@@ -74,35 +74,63 @@ char *file, *status;
   exit(-1);
 }
 
+/*
+ * Routines for growing the stochiometry matrix
+ *
+ * The old version of these routines assumed that the stochiometry matrix
+ * increase by one dimension each time => could be some memory corruption
+ * if that ever wasn't true.  New version keeps track of the old size
+ * and makes sure everything is initialized.
+ *
+ */
+
+static int stomat_nreactions = 0;  /* keep track of allocation size */
+static int stomat_nspecies = 0;
+
 void GrowStomatReactions(n)
 int n;
 {
-  if(StoMat1==NULL) StoMat1= (int **) rcalloc(n,sizeof(int *),"GrowStomatR.1");
-  else              StoMat1= (int **) rrealloc(StoMat1,n,sizeof(int *),"GrowStomatR.1");
+  int i;
 
-  StoMat1[n-1]= (int *) rcalloc(NSpecies,sizeof(int),"GrowStomatR.1.1");
+  /* Allocate memory for the rows (uses realloc => OK if pointer is NULL) */
+  StoMat1 = (int **) rrealloc(StoMat1, n, sizeof(int *), "GrowStomatR.1");
+  StoMat2 = (int **) rrealloc(StoMat2, n, sizeof(int *), "GrowStomatR.2");
 
-  if(StoMat2==NULL) StoMat2= (int **) rcalloc(n,sizeof(int *),"GrowStomatR.2");
-  else              StoMat2= (int **) rrealloc(StoMat2,n,sizeof(int *),"GrowStomatR.2");
+  /* Allocate memory for new columns */
+  for (i = stomat_nreactions; i < n; ++i) {
+    /* Allocate elements of the matrix (will initialize to zero) */
+    StoMat1[i]= (int *) rcalloc(NSpecies, sizeof(int), "GrowStomatR.1.1");
+    StoMat2[i]= (int *) rcalloc(NSpecies, sizeof(int), "GrowStomatR.2.1");
+  }
 
-  StoMat2[n-1]= (int *) rcalloc(NSpecies,sizeof(int),"GrowStomatR.2.1");
+  /* Keep track of the current size */
+  stomat_nreactions = n;
 }
 
 void GrowStomatSpecies(n)
 int n;
 {
-  int i;
+  int i, j;
 
-  fprintf(stderr,"NMassAction= %d NSpecies = %d\n",NMassAction, n);
-  for(i=0; i<NMassAction; i++){
+  assert(StoMat1 != NULL);
+  assert(StoMat2 != NULL);
 
-    if(StoMat1[i]==NULL) StoMat1[i]= (int *) rcalloc(n,sizeof(int),"GrowStomatS.1");
-    else                 StoMat1[i]= (int *) rrealloc(StoMat1[i],n,sizeof(int),"GrowStomatS.1");
+  if (DebugLevel >= 2) 
+    fprintf(stderr,"NMassAction= %d NSpecies = %d\n",NMassAction, n);
 
-    if(StoMat2[i]==NULL) StoMat2[i]= (int *) rcalloc(n,sizeof(int),"GrowStomatS.2");
-    else                 StoMat2[i]= (int *) rrealloc(StoMat2[i],n,sizeof(int),"GrowStomatS.2");
+  for (i=0; i < NMassAction; i++) {
+    StoMat1[i] = (int *) rrealloc(StoMat1[i], n, sizeof(int), "GrowStomatS.1");
+    StoMat2[i] = (int *) rrealloc(StoMat2[i], n, sizeof(int), "GrowStomatS.2");
+
+    /* Set the new entries to zero */
+    for (j = stomat_nspecies; j < n; ++j) {
+      StoMat1[i][j] = 0;
+      StoMat2[i][j] = 0;
+    }
   }
 
+  /* Keep track of the current size */
+  stomat_nspecies = n;
 }
 
 int FindSpecies(name)
@@ -137,7 +165,8 @@ char *name;
 
   Concentration[NSpecies-1]=0;
 
-  fprintf(stderr,"@@@ %s: Added Species: %s\n",progid,name);
+  if (DebugLevel >= 2)
+    fprintf(stderr,"@@@ %s: Added Species: %s\n", progid, name);
 }
 
 /*** Base Unit is set to seconds ****/
@@ -419,13 +448,24 @@ char *mech;
   }
   
   /* Read Reaction Probabilities */
-  
-  if(ReactionProbability==NULL) ReactionProbability= (double *) rcalloc(NMassAction,sizeof(double),"ReadKinetics.1");
-  else                          ReactionProbability= (double *) rrealloc(ReactionProbability,NMassAction,sizeof(double),"ReadKinetics.1");
+  if(ReactionProbability==NULL) 
+    ReactionProbability = (double *) 
+      rcalloc(NMassAction, sizeof(double), "ReadKinetics.1");
+  else
+    ReactionProbability= (double *) 
+      rrealloc(ReactionProbability, NMassAction, sizeof(double),
+	       "ReadKinetics.1");
 
   for(i=0; i<nreact; i++){
     double mult;
-    fscanf(fp,"%*s %*s %lf %s",&ReactionProbability[NMassAction-nreact+i],token);
+    if (fscanf(fp,"%*s %*s %s %s", buffer, token) != 2 ||
+	param_parse_value(buffer, "%lf", 
+			  &ReactionProbability[NMassAction-nreact+i]) < 0) {
+      fprintf(stderr, "%s: can't parse rate for reaction %d in mechanism %s\n",
+	      progid, i, mech);
+      exit(-1);
+    }
+
     mult=FindTimeUnit(token);
     if(mult<0.0){
       fprintf(stderr,"%s: Illegal time scale found for reaction probability %d in mechanism %s.\n",
@@ -439,7 +479,12 @@ char *mech;
 
   /* Read Intial Concentrations */
 
-  while(fscanf(fp,"%s %*s %d",token,&molec)!=EOF){
+  while(fscanf(fp,"%s %*s %s",token, buffer)!=EOF){
+    if (param_parse_value(buffer, "%d", &molec) < 0) {
+      fprintf(stderr, "%s: can't parse initial count for species '%s'\n", 
+	      progid, token);
+      exit(-1);
+    }
     
     j= FindSpecies(token);
     
@@ -447,7 +492,8 @@ char *mech;
       fprintf(stderr,"Found unknown species %s\n",token);
       exit(-1);
     }
-    fprintf(stderr,"@@@ [%s]= %d\n",SpeciesName[j],molec);
+    if (DebugLevel >= 2)
+      fprintf(stderr,"@@@ [%s]= %d\n",SpeciesName[j],molec);
     Concentration[j]=molec;
   }
   
@@ -771,7 +817,9 @@ char *mech;
      case DNA_Type_Promotor:
 #ifdef RMM_MODS
        /* Keep a list of the promoters for future reference */
-       fprintf(stderr, "Reading promoter %s, copy %d\n", sequence->Name, i);
+       if (DebugLevel >= 3)
+	 fprintf(stderr, "Reading promoter %s, copy %d\n", sequence->Name, i);
+
        if (NPromotors == 0) {
 	 /* Allocate space for the promotor list */
 	 Promotor = (PROMOTOR **) rcalloc(1,
@@ -930,6 +978,25 @@ char      *params;
    ***** In the third case, duplicates will be made automatically be the program.
    *****/
 
+  /*
+   * RMM notes (27 Apr 10): the way that having separate operators for
+   * different copies of the DNA is handled (case three) is by setting
+   * the operator name to be of the form <name>_<copy>.  This forces a
+   * reread of the Shea/Ackers file for each copy of the gene.
+   *
+   * Note that if you use the same S/A file name for different strands
+   * of DNA (in separate files), then the operators are equated across
+   * the strands.  This is potentially useful if you want to do
+   * something like split the lambda DNA into separate PR/PRM modules
+   * to change the ribosome binding strengths for CI depending on
+   * which promoter is used to start transcription: you can put PRE in
+   * one Seq file and PRM in another, but use the same S/A file name
+   * => the operator will magically have the same state between the
+   * DNAs (one shared operator per copy number).  Note that this will
+   * not handle the RNAP collisions that would occur across a single
+   * strand, however.
+   */
+
 #ifdef RMM_MODS
   prom->RNAPCount = 0;
 #endif
@@ -977,7 +1044,8 @@ char      *params;
   
   /* If we haven't read the operator file, do so now */
   if(i==NOperators){
-    fprintf(stderr,"@@@ Reading SheaAckers for copy %d\n",copy);
+    if (DebugLevel >= 3)
+      fprintf(stderr,"@@@ Reading SheaAckers for copy %d\n",copy);
     ReadSheaAckers(copy,token2);
   }
 
@@ -1038,7 +1106,9 @@ char *file;
   
   if(NSites<=0 || NConfigs <=0){
     fprintf(stderr,"%s: The number of binding sites and configurations must be more that 0 for this object.\n",progid);
-    fprintf(stderr,"%s: Sites= %d, Configs= %d in file %s\n",progid,NSites,NConfigs,file);
+    if (DebugLevel >= 3)
+      fprintf(stderr,"%s: Sites= %d, Configs= %d in file %s\n",
+	      progid,NSites,NConfigs,file);
     exit(-1);
   }
   
@@ -1173,7 +1243,8 @@ char     *params;
    */
   int antiterminated = 0;
   if(strcasecmp(token1, "TermModifier") == 0) {
-    fprintf(stderr, "%s: Reading anti-terminator modification\n", progid);
+    if (DebugLevel >= 3)
+      fprintf(stderr, "%s: Reading anti-terminator modification\n", progid);
 
     /* Read the species for the modifier */
     tdata->SpeciesIndex = FindSpecies(token2);
@@ -1184,7 +1255,8 @@ char     *params;
 
     antiterminated = 1;
   } else {
-    fprintf(stderr, "%s: Unmodified terminator\n", progid);
+    if (DebugLevel >= 3)
+      fprintf(stderr, "%s: Unmodified terminator\n", progid);
 
     /* Rescan the line for BaseFallOffRate */
 #   warning Unsafe usage of sscanf
@@ -1518,8 +1590,9 @@ char     *params;
 
     /* Check for each optional value in turn */
     if (strcasecmp(token1, "RibosomeBindingRate") == 0) {
-      fprintf(stderr,"%s: found RibosomeBindingRate: %s => %g\n", progid, 
-	      token2, value);
+      if (DebugLevel >= 3)
+	fprintf(stderr,"%s: found RibosomeBindingRate: %s => %g\n", progid, 
+		token2, value);
       tdata->RibosomeBindingRate = value;
 
     } else {

@@ -2,7 +2,8 @@ package "simulac"
 version "1.0"
 usage "Simulac [options] outline_file maxtime printtime seed"
 
-option "help"   -  "print out help message and exit" flag off
+option "help"	-  "print out help message and exit" flag off
+option "debug"	d  "set debugging level (0 = none, 1 = info, ... 5 = all)" int optional
 option "init"	i  "initial condition, name=val (int)" string optional multiple
 option "rate"   r  "rate parameter, kNN=val (float)" string optional multiple
 option "volume" v  "initial cell volume, (0-1]" float optional

@@ -1,3 +1,16 @@
+RMM, 4 May 2010: memory cleanup
+  * Trying to fix crashes in LambdaQs-Qrep runs 
+  * Rewrote stochiometry matrix allocations to fix valgrind errors
+  * Small change in segment dynamics to avoid accessing pointer after free
+  * Updated Memory.c to set pointers in blocks to NULL after they are handed out
+  * Reset various points to NULL to make sure we don't free things twice
+
+RMM, 4 May 2010: implemented DebugLevel
+  * DebugLevel = 0: no output
+  * DebugLevel = 1: minimal about (showing sim is running)
+  * DebugLevel = 2: show limited information about parsing
+  * DebugLevel = 3: give details about parsing
+
 RMM, 19 Apr 10: added code for ribosome binding strength
   * RibosomeBindingRate can now be set for individual GENE
   * Use RibosomeBindingRate at end of ProtData file

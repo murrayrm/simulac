@@ -84,17 +84,12 @@ REACTION  *Reaction;
 double     TotalProbability=0.0;
 double    *Probabilities;
 
-
 CELL      *EColi;
 
 double Time;
 double MaximumTime;
 double PrintTime,WriteTime;
-
 char progid[80];
-
-
-
 
 int main(argc,argv)
 int argc;
@@ -143,6 +138,7 @@ char **argv;
   /* Perform processing of cmdline arguments that affect init/parsing */
   extern int global_MOI;
   if (args_info.moi_given) global_MOI = args_info.moi_arg;
+  if (args_info.debug_given) DebugLevel = args_info.debug_arg;
 
   if (args_info.param_given) {
     /* Process the command line parameters and store them for later use */
@@ -206,21 +202,26 @@ char **argv;
 
   /* Set cell volume */
   if (args_info.volume_given) {
-    fprintf(stderr, "Resetting initial cell volume from %g", EColi->VI);
+    if (DebugLevel > 1)
+      fprintf(stderr, "Resetting initial cell volume from %g", EColi->VI);
     EColi->V = (EColi->VI *= args_info.volume_arg);
-    fprintf(stderr, " to %g\n", EColi->VI);
+    if (DebugLevel > 1)
+      fprintf(stderr, " to %g\n", EColi->VI);
   }
 
   /* Set growth rate */
   if (args_info.growth_given) {
-    fprintf(stderr, "Resetting cell growth rate from %g", EColi->GrowthRate);
+    if (DebugLevel > 1)
+      fprintf(stderr, "Resetting cell growth rate from %g", EColi->GrowthRate);
     EColi->GrowthRate *= args_info.growth_arg;
-    fprintf(stderr, " to %g\n", EColi->GrowthRate);
+    if (DebugLevel > 1)
+      fprintf(stderr, " to %g\n", EColi->GrowthRate);
   }
 
   /* Determine if we should allow cell division */
   if (args_info.single_given) {
-    fprintf(stderr, "Resetting cell volume to stop cell division\n");
+    if (DebugLevel > 1)
+      fprintf(stderr, "Resetting cell volume to stop cell division\n");
     /* HACK: set cell division size to something huge */
     EColi->VI *= 1000;
   }
@@ -299,7 +300,8 @@ char **argv;
   PrintTime   =  atof(argv[3]);
   SEED        =  atol(argv[4]);
 #endif
-  fprintf(stderr, "SEED = %ld\n", SEED);
+  if (DebugLevel > 2)
+    fprintf(stderr, "SEED = %ld\n", SEED);
   srand48(SEED);
 
   DEBUG(20){
@@ -475,6 +477,11 @@ int cnt;
 {
 
   int i;
+
+  /* Print some information for the user */
+  if (DebugLevel) {
+    fprintf(stderr, "%g: \tCNT = %d, RPQ = %e\n", t, cnt, rpq);
+  }
 
   fprintf(stdout,"%e\t%d\t%e\t",t,cnt,rpq);
   for(i=0; i<NSpecies; i++)
