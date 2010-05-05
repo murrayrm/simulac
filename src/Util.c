@@ -42,7 +42,7 @@ extern int strncasecmp();
 int EventLevel=0;
 #define Event(A) if((A)>EventLevel)
 
-int DebugLevel=0;
+int DebugLevel=1;
 #define DEBUG(A) if((A)<DebugLevel)
 
 /***********
@@ -77,18 +77,12 @@ char *id;
 {
   void *ptr;
 
-  if((ptr=calloc(nelem,size))==NULL){
+  /* Use realloc to increase the memory size */
+  if((ptr=realloc(happyptr, nelem*size))==NULL){
     fprintf(stderr,"%s: Error reallocating memory\n",progid);
-    if(id) 
-      fprintf(stderr,"%s: ID= %s\n",progid,id);
+    if (id) fprintf(stderr,"%s: ID= %s\n",progid,id);
     exit(-1);
   }
-
-  
-  /***### This -1 assumes we are only changing things by 1 ###***/
-
-  memcpy(ptr,happyptr,(nelem-1)*size);
-  
   return(ptr);
 }
 
