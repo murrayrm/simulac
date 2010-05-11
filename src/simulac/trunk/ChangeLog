@@ -1,3 +1,9 @@
+RMM, 10 May 2010: minor enhancements
+  * Added -o option for saving simulation output
+  * Added --python-setup to generate python compatabile file
+  * Added -C, --config-file to use configuration file parsing
+  * New options for system-file, maximum-time and print-time
+
 RMM, 4 May 2010: memory cleanup
   * Trying to fix crashes in LambdaQs-Qrep runs 
   * Rewrote stochiometry matrix allocations to fix valgrind errors

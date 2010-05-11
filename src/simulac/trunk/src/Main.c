@@ -88,10 +88,18 @@ CELL      *EColi;
 
 double Time;
 double MaximumTime;
+long SEED;
+
+/* Configuration parameters */
+char *SystemFile, *ConfigPath;
 double PrintTime,WriteTime;
 char progid[80];
+FILE *ofp = NULL;
 
-int main(argc,argv)
+/* Function declarations */
+void generateSetupScript(char *filename, char *comment, int offset);
+
+int main(argc, argv)
 int argc;
 char **argv;
 {
@@ -99,7 +107,6 @@ char **argv;
   int rcnt;
   double tau;
   REACTION *reaction=NULL;
-  long SEED;
   
   void SetAckersState();
   void Polymerize();
@@ -123,16 +130,31 @@ char **argv;
     exit(1);
   }
 
-  /* Make sure we got enough input arguments */
-  if (args_info.inputs_num < 3 || args_info.inputs_num > 4) {
-    fprintf(stderr, "%s\n", gengetopt_args_info_usage);
-    exit(1);
-  }
-
   /* Check to see if a configuration file was given */
   if (args_info.config_file_given) {
     struct cmdline_parser_params *params = cmdline_parser_params_init();
     cmdline_parser_config_file(args_info.config_file_arg, &args_info, params);
+  }
+
+  /* Make sure we got enough input arguments */
+  if (args_info.system_file_given) {
+    /* Assume that all data about simulation is on command line */
+    ConfigPath = args_info.config_path_arg;
+    SystemFile = args_info.system_file_arg;
+    MaximumTime = args_info.maximum_time_arg;
+    PrintTime = args_info.print_time_arg;
+    SEED = (args_info.seed_given) ? args_info.seed_arg : time(NULL);
+
+  } else if (args_info.inputs_num < 3 || args_info.inputs_num > 4) {
+    /* Check to make sure that we have 3 or 4 input arguments */
+    fprintf(stderr, "%s\n", gengetopt_args_info_usage);
+    exit(1);
+  } else {
+    /* Process the arguments in the original manner */
+    SystemFile = args_info.inputs[0];
+    MaximumTime =  atof(args_info.inputs[1]);
+    PrintTime   =  atof(args_info.inputs[2]);
+    SEED = (args_info.inputs_num > 3) ? atol(args_info.inputs[3]) : time(NULL);
   }
 
   /* Perform processing of cmdline arguments that affect init/parsing */
@@ -145,6 +167,16 @@ char **argv;
     if (param_init(args_info.param_given, args_info.param_arg) < 0) 
       /* If we got a fatal error, stop all processing */
       exit(1);
+  }
+
+  /* Set the output file handle */
+  ofp = stdout;
+  if (args_info.output_file_given) {
+    /* Open up a file for storing the simulation output */
+    if ((ofp = fopen(args_info.output_file_arg, "w")) == NULL) {
+      perror(args_info.output_file_arg);
+      exit(1);
+    }
   }
 
 #else
@@ -190,11 +222,8 @@ char **argv;
   FillBicoTable();
 
 #ifdef RMM_MODS
-  /* Use the command line inputs to get basic parameters */
-  ParseOutline(args_info.inputs[0]);
-  MaximumTime =  atof(args_info.inputs[1]);
-  PrintTime   =  atof(args_info.inputs[2]);
-  SEED = (args_info.inputs_num > 3) ? atol(args_info.inputs[3]) : time(NULL);
+  /* Parse the system description file */
+  ParseOutline(SystemFile);
 
   /* 
    * Process optional arguments 
@@ -320,73 +349,37 @@ char **argv;
 
   /* Check to see if we should generate setup scripts */
   if (args_info.matlab_setup_given) {
-    fprintf(stderr, "Generating MATLAB setup script '%s'\n",
-	    args_info.matlab_setup_arg);
+    if (DebugLevel > 1) 
+      fprintf(stderr, "Generating MATLAB setup script '%s'\n",
+	      args_info.matlab_setup_arg);
+    generateSetupScript(args_info.matlab_setup_arg, "%", 1);
+  }
 
-    /* Open up the file for writing (overwrite mode) */
-    if ((matlab_fp = fopen(args_info.matlab_setup_arg, "w")) == NULL) { 
-      perror(args_info.matlab_setup_arg); 
-      exit(-1); 
-    }
-
-    /* Print out some header information */
-    time_t curtime = time(NULL);
-    fprintf(matlab_fp, "%% Simulac MATLAB setup file\n");
-    fprintf(matlab_fp, "%% Run generated: %s", ctime(&curtime));
-   
-    /* Print out parameters governing the simulation */
-    fprintf(matlab_fp, "\n%% Simulation parameters\n" );
-    fprintf(matlab_fp, "sl_config_file = '%s';\n", args_info.inputs[0]);
-    fprintf(matlab_fp, "sl_maxtime = %s;\n", args_info.inputs[1]);
-    fprintf(matlab_fp, "sl_stepsize = %s;\n", args_info.inputs[2]);
-    fprintf(matlab_fp, "sl_seed = %ld;\n", SEED);
-
-    /* Print out information about the number of objects of each type */
-    fprintf(matlab_fp, "\n%% System size\n" );
-    fprintf(matlab_fp, "sl_n_species = %d;\n", NSpecies);
-    fprintf(matlab_fp, "sl_n_operators = %d;\n", NOperators);
-    fprintf(matlab_fp, "sl_n_promoters = %d;\n", NPromotors);
-
-    /* Print the column indices for the output file */
-    fprintf(matlab_fp, "\n%% Data indices\n" );
-    int col = 1;
-    fprintf(matlab_fp, "sl_time_index = %d;\n", col++);
-    fprintf(matlab_fp, "sl_NR_index = %d;\n", col++);
-    fprintf(matlab_fp, "sl_RPQ_index = %d;\n", col++);
-    for (i = 0; i < NSpecies; ++i) 
-      fprintf(matlab_fp, "sl_species_%s_index = %d;\n", SpeciesName[i], col++);
-    fprintf(matlab_fp, "sl_volume_index = %d;\n", col++);
-    for (i=0 ; i < NOperators; ++i)
-      fprintf(matlab_fp, "sl_operator_%s_index = %d;\n",
-	      Operator[i].Name, col++);
-    if (args_info.pops_given) {
-      for (i = 0; i < NPromotors; ++i)
-	fprintf(matlab_fp, "sl_promoter_%s_index = %d;\n",
-		Promotor[i]->Name, col++);
-    }
-    
-    /* Close up the file */
-    fclose(matlab_fp);
+  if (args_info.python_setup_given) {
+    if (DebugLevel > 1) 
+      fprintf(stderr, "Generating python setup script '%s'\n",
+	      args_info.python_setup_arg);
+    generateSetupScript(args_info.python_setup_arg, "#", 0);
   }
 
   if (args_info.header_flag) {
 # endif
-    fprintf(stdout,"%% Time\tNR\tRPQ\t");
+    fprintf(ofp,"%% Time\tNR\tRPQ\t");
     for(i=0;i<NSpecies;i++)
-      fprintf(stdout,"%6s\t",SpeciesName[i]);
-    fprintf(stdout,"%6s\t","Volume");
+      fprintf(ofp,"%6s\t",SpeciesName[i]);
+    fprintf(ofp,"%6s\t","Volume");
     for(i=0;i<NOperators; i++)
-      fprintf(stdout,"%6s\t",&Operator[i].Name[8]);
+      fprintf(ofp,"%6s\t",&Operator[i].Name[8]);
 #ifdef RMM_MODS
     /* RNAP counts */
     if (args_info.pops_given) {
       for (i = 0; i < NPromotors; ++i)
-	fprintf(stdout, "%6s-RNAP\t", Promotor[i]->Name);
+	fprintf(ofp, "%6s-RNAP\t", Promotor[i]->Name);
     }
-    fprintf(stdout,"\n");
+    fprintf(ofp,"\n");
   }
 # else
-  fprintf(stdout,"\n");
+  fprintf(ofp,"\n");
 #endif
 
   /********************
@@ -483,29 +476,79 @@ int cnt;
     fprintf(stderr, "%g: \tCNT = %d, RPQ = %e\n", t, cnt, rpq);
   }
 
-  fprintf(stdout,"%e\t%d\t%e\t",t,cnt,rpq);
+  fprintf(ofp,"%e\t%d\t%e\t",t,cnt,rpq);
   for(i=0; i<NSpecies; i++)
-    fprintf(stdout,"%7d\t",Concentration[i]);
+    fprintf(ofp,"%7d\t",Concentration[i]);
 
 #ifdef RMM_MODS
   /* Use the reference cell size for normalization */
-  fprintf(stdout,"%e\t",EColi->V/EColi->V0);
+  fprintf(ofp,"%e\t",EColi->V/EColi->V0);
 #else
-  fprintf(stdout,"%e\t",EColi->V/EColi->VI);
+  fprintf(ofp,"%e\t",EColi->V/EColi->VI);
 #endif
 
   for(i=0; i<NOperators; i++)
-    fprintf(stdout,"%7d\t",Operator[i].CurrentState);
+    fprintf(ofp,"%7d\t",Operator[i].CurrentState);
 
 #ifdef RMM_MODS
   if (args_info.pops_given) {
     /* Print out the number of RNApolymerases for each promoter */
     for (i = 0; i < NPromotors; ++i)
-      fprintf(stdout, "%7d\t", Promotor[i]->RNAPCount);
+      fprintf(ofp, "%7d\t", Promotor[i]->RNAPCount);
   }
 #endif
 
-  fprintf(stdout,"\n");
-  fflush(stdout);
+  fprintf(ofp,"\n");
+  fflush(ofp);
 }
 
+void generateSetupScript(char *filename, char *comment, int offset)
+{
+  FILE *setup_fp;
+  int i;
+
+  /* Open up the file for writing (overwrite mode) */
+  if ((setup_fp = fopen(filename, "w")) == NULL) { 
+    perror(filename); 
+    exit(-1); 
+  }
+
+  /* Print out some header information */
+  time_t curtime = time(NULL);
+  fprintf(setup_fp, "%s Simulac setup file\n", comment);
+  fprintf(setup_fp, "%s Run generated: %s", comment, ctime(&curtime));
+   
+  /* Print out parameters governing the simulation */
+  fprintf(setup_fp, "\n%s Simulation parameters\n", comment);
+  fprintf(setup_fp, "sl_config_file = '%s';\n", SystemFile);
+  fprintf(setup_fp, "sl_maximum_time = %g;\n", MaximumTime);
+  fprintf(setup_fp, "sl_print_time = %g;\n", PrintTime);
+  fprintf(setup_fp, "sl_seed = %ld;\n", SEED);
+
+  /* Print out information about the number of objects of each type */
+  fprintf(setup_fp, "\n%s System size\n", comment);
+  fprintf(setup_fp, "sl_n_species = %d;\n", NSpecies);
+  fprintf(setup_fp, "sl_n_operators = %d;\n", NOperators);
+  fprintf(setup_fp, "sl_n_promoters = %d;\n", NPromotors);
+
+  /* Print the column indices for the output file */
+  fprintf(setup_fp, "\n%s Data indices\n", comment);
+  int col = offset;
+  fprintf(setup_fp, "sl_time_index = %d;\n", col++);
+  fprintf(setup_fp, "sl_NR_index = %d;\n", col++);
+  fprintf(setup_fp, "sl_RPQ_index = %d;\n", col++);
+  for (i = 0; i < NSpecies; ++i) 
+    fprintf(setup_fp, "sl_species_%s_index = %d;\n", SpeciesName[i], col++);
+  fprintf(setup_fp, "sl_volume_index = %d;\n", col++);
+  for (i=0 ; i < NOperators; ++i)
+    fprintf(setup_fp, "sl_operator_%s_index = %d;\n",
+	    Operator[i].Name, col++);
+  if (args_info.pops_given) {
+    for (i = 0; i < NPromotors; ++i)
+      fprintf(setup_fp, "sl_promoter_%s_index = %d;\n",
+	      Promotor[i]->Name, col++);
+  }
+    
+  /* Close up the file */
+  fclose(setup_fp);
+}
