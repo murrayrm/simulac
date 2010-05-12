@@ -179,6 +179,15 @@ char **argv;
     }
   }
 
+  /* Reset the error file handle, if needed */
+  if (args_info.log_file_given) {
+    /* Open up a file for storing the simulation output */
+    if (freopen(args_info.output_file_arg, "w", stderr) == NULL) {
+      perror(args_info.log_file_arg);
+      exit(1);
+    }
+  }
+
 #else
   if (argc!=5) {
     fprintf(stderr, "usage: %s outline_file Maximum_Time Print_Time SEED\n",
