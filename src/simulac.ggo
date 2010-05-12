@@ -22,3 +22,4 @@ option "maximum-time" - "Maximum time to run the simulation" double optional def
 option "print-time" - "Time interval to use for printing output state" double optional default="1"
 option "seed" - "Seed for random number generator" long optional
 option "output-file" o "Output file name" string optional
+option "log-file" l "Log file name" string optional
