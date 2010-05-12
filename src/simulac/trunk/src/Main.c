@@ -97,7 +97,7 @@ char progid[80];
 FILE *ofp = NULL;
 
 /* Function declarations */
-void generateSetupScript(char *filename, char *comment, int offset);
+void generateSetupScript(char *, char *, char *, int);
 
 int main(argc, argv)
 int argc;
@@ -352,14 +352,14 @@ char **argv;
     if (DebugLevel > 1) 
       fprintf(stderr, "Generating MATLAB setup script '%s'\n",
 	      args_info.matlab_setup_arg);
-    generateSetupScript(args_info.matlab_setup_arg, "%", 1);
+    generateSetupScript(args_info.matlab_setup_arg, "%", "sl_", 1);
   }
 
   if (args_info.python_setup_given) {
     if (DebugLevel > 1) 
       fprintf(stderr, "Generating python setup script '%s'\n",
 	      args_info.python_setup_arg);
-    generateSetupScript(args_info.python_setup_arg, "#", 0);
+    generateSetupScript(args_info.python_setup_arg, "#", "", 0);
   }
 
   if (args_info.header_flag) {
@@ -502,7 +502,8 @@ int cnt;
   fflush(ofp);
 }
 
-void generateSetupScript(char *filename, char *comment, int offset)
+void generateSetupScript(char *filename, char *comment, char *prefix, 
+			 int offset)
 {
   FILE *setup_fp;
   int i;
@@ -520,32 +521,33 @@ void generateSetupScript(char *filename, char *comment, int offset)
    
   /* Print out parameters governing the simulation */
   fprintf(setup_fp, "\n%s Simulation parameters\n", comment);
-  fprintf(setup_fp, "sl_config_file = '%s';\n", SystemFile);
-  fprintf(setup_fp, "sl_maximum_time = %g;\n", MaximumTime);
-  fprintf(setup_fp, "sl_print_time = %g;\n", PrintTime);
-  fprintf(setup_fp, "sl_seed = %ld;\n", SEED);
+  fprintf(setup_fp, "%sconfig_file = '%s';\n", prefix, SystemFile);
+  fprintf(setup_fp, "%smaximum_time = %g;\n", prefix, MaximumTime);
+  fprintf(setup_fp, "%sprint_time = %g;\n", prefix, PrintTime);
+  fprintf(setup_fp, "%sseed = %ld;\n", prefix, SEED);
 
   /* Print out information about the number of objects of each type */
   fprintf(setup_fp, "\n%s System size\n", comment);
-  fprintf(setup_fp, "sl_n_species = %d;\n", NSpecies);
-  fprintf(setup_fp, "sl_n_operators = %d;\n", NOperators);
-  fprintf(setup_fp, "sl_n_promoters = %d;\n", NPromotors);
+  fprintf(setup_fp, "%sn_species = %d;\n", prefix, NSpecies);
+  fprintf(setup_fp, "%sn_operators = %d;\n", prefix, NOperators);
+  fprintf(setup_fp, "%sn_promoters = %d;\n", prefix, NPromotors);
 
   /* Print the column indices for the output file */
   fprintf(setup_fp, "\n%s Data indices\n", comment);
   int col = offset;
-  fprintf(setup_fp, "sl_time_index = %d;\n", col++);
-  fprintf(setup_fp, "sl_NR_index = %d;\n", col++);
-  fprintf(setup_fp, "sl_RPQ_index = %d;\n", col++);
+  fprintf(setup_fp, "%stime_index = %d;\n", prefix, col++);
+  fprintf(setup_fp, "%sNR_index = %d;\n", prefix, col++);
+  fprintf(setup_fp, "%sRPQ_index = %d;\n", prefix, col++);
   for (i = 0; i < NSpecies; ++i) 
-    fprintf(setup_fp, "sl_species_%s_index = %d;\n", SpeciesName[i], col++);
-  fprintf(setup_fp, "sl_volume_index = %d;\n", col++);
+    fprintf(setup_fp, "%sspecies_%s_index = %d;\n", prefix, 
+	    SpeciesName[i], col++);
+  fprintf(setup_fp, "%svolume_index = %d;\n", prefix, col++);
   for (i=0 ; i < NOperators; ++i)
-    fprintf(setup_fp, "sl_operator_%s_index = %d;\n",
+    fprintf(setup_fp, "%soperator_%s_index = %d;\n", prefix, 
 	    Operator[i].Name, col++);
   if (args_info.pops_given) {
     for (i = 0; i < NPromotors; ++i)
-      fprintf(setup_fp, "sl_promoter_%s_index = %d;\n",
+      fprintf(setup_fp, "%spromoter_%s_index = %d;\n", prefix,
 	      Promotor[i]->Name, col++);
   }
     
