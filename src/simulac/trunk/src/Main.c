@@ -94,7 +94,7 @@ long SEED;
 char *SystemFile, *ConfigPath;
 double PrintTime,WriteTime;
 char progid[80];
-FILE *ofp = NULL;
+FILE *ofp = NULL, *logfp = NULL;
 
 /* Function declarations */
 void generateSetupScript(char *, char *, char *, int);
@@ -179,10 +179,11 @@ char **argv;
     }
   }
 
-  /* Reset the error file handle, if needed */
+  /* Set the log file handle */
+  logfp = stderr;
   if (args_info.log_file_given) {
     /* Open up a file for storing the simulation output */
-    if (freopen(args_info.output_file_arg, "w", stderr) == NULL) {
+    if ((logfp = fopen(args_info.log_file_arg, "w")) == NULL) {
       perror(args_info.log_file_arg);
       exit(1);
     }
@@ -241,32 +242,32 @@ char **argv;
   /* Set cell volume */
   if (args_info.volume_given) {
     if (DebugLevel > 1)
-      fprintf(stderr, "Resetting initial cell volume from %g", EColi->VI);
+      fprintf(logfp, "Resetting initial cell volume from %g", EColi->VI);
     EColi->V = (EColi->VI *= args_info.volume_arg);
     if (DebugLevel > 1)
-      fprintf(stderr, " to %g\n", EColi->VI);
+      fprintf(logfp, " to %g\n", EColi->VI);
   }
 
   /* Set growth rate */
   if (args_info.growth_given) {
     if (DebugLevel > 1)
-      fprintf(stderr, "Resetting cell growth rate from %g", EColi->GrowthRate);
+      fprintf(logfp, "Resetting cell growth rate from %g", EColi->GrowthRate);
     EColi->GrowthRate *= args_info.growth_arg;
     if (DebugLevel > 1)
-      fprintf(stderr, " to %g\n", EColi->GrowthRate);
+      fprintf(logfp, " to %g\n", EColi->GrowthRate);
   }
 
   /* Determine if we should allow cell division */
   if (args_info.single_given) {
     if (DebugLevel > 1)
-      fprintf(stderr, "Resetting cell volume to stop cell division\n");
+      fprintf(logfp, "Resetting cell volume to stop cell division\n");
     /* HACK: set cell division size to something huge */
     EColi->VI *= 1000;
   }
 
   /* Set parameter values */
   if (args_info.rate_given) {
-    fprintf(stderr, "Processing %d rate parameters\n",
+    fprintf(logfp, "Processing %d rate parameters\n",
 	    args_info.rate_given);
 
     /* Go through all initial condition commands */
@@ -276,15 +277,15 @@ char **argv;
       float val;
 
       /* Parse the intial condition */
-      fprintf(stderr, "  processing %s: ", args_info.rate_arg[i]);
+      fprintf(logfp, "  processing %s: ", args_info.rate_arg[i]);
       sscanf(args_info.rate_arg[i], "k%d=%g", &index, &val);
-      fprintf(stderr, "reaction = %d, value = %g\n", index, val);
+      fprintf(logfp, "reaction = %d, value = %g\n", index, val);
 
       /* Make sure the reaction number is OK */
       if (index < NMassAction) {
 	ReactionProbability[index] = val;
       } else {
-	fprintf(stderr, "  reaction number %d out of range (%d)\n",
+	fprintf(logfp, "  reaction number %d out of range (%d)\n",
 		index, NMassAction); 
       }
     }
@@ -292,7 +293,7 @@ char **argv;
 
   /* Set initial conditions */
   if (args_info.init_given) {
-    fprintf(stderr, "Processing %d initial condition arguments\n",
+    fprintf(logfp, "Processing %d initial condition arguments\n",
 	    args_info.init_given);
 
     /* Go through all initial condition commands */
@@ -303,9 +304,9 @@ char **argv;
       assert(name != NULL);
 
       /* Parse the intial condition */
-      fprintf(stderr, "  processing %s: ", args_info.init_arg[i]);
+      fprintf(logfp, "  processing %s: ", args_info.init_arg[i]);
       sscanf(args_info.init_arg[i], "%[^=]=%d", name, &val);
-      fprintf(stderr, "species = %s, value = %d\n", name, val);
+      fprintf(logfp, "species = %s, value = %d\n", name, val);
 
       /* Try to find this argument in the list of species */
       int j;
@@ -317,9 +318,9 @@ char **argv;
 
       if (j < NSpecies) {
 	/* We found a match */
-	fprintf(stderr, "  resetting initial concentration for species %s",
+	fprintf(logfp, "  resetting initial concentration for species %s",
 		SpeciesName[j]);
-	fprintf(stderr, " from %d to %d\n", Concentration[j], val);
+	fprintf(logfp, " from %d to %d\n", Concentration[j], val);
 	Concentration[j] = val;
       } else {
 	fprintf(stderr, "  couldn't find species %s\n", name);
@@ -339,14 +340,14 @@ char **argv;
   SEED        =  atol(argv[4]);
 #endif
   if (DebugLevel > 2)
-    fprintf(stderr, "SEED = %ld\n", SEED);
+    fprintf(logfp, "SEED = %ld\n", SEED);
   srand48(SEED);
 
   DEBUG(20){
-    fprintf(stderr,"@@@ NOperators  = %d\n", NOperators);
-    fprintf(stderr,"@@@ NSequences  = %d\n", NSequences);
-    fprintf(stderr,"@@@ NMassAction = %d\n", NMassAction);
-    fprintf(stderr,"@@@ NSpecies    = %d\n", NSpecies);
+    fprintf(logfp,"@@@ NOperators  = %d\n", NOperators);
+    fprintf(logfp,"@@@ NSequences  = %d\n", NSequences);
+    fprintf(logfp,"@@@ NMassAction = %d\n", NMassAction);
+    fprintf(logfp,"@@@ NSpecies    = %d\n", NSpecies);
   }
 
   /* 
@@ -359,14 +360,14 @@ char **argv;
   /* Check to see if we should generate setup scripts */
   if (args_info.matlab_setup_given) {
     if (DebugLevel > 1) 
-      fprintf(stderr, "Generating MATLAB setup script '%s'\n",
+      fprintf(logfp, "Generating MATLAB setup script '%s'\n",
 	      args_info.matlab_setup_arg);
     generateSetupScript(args_info.matlab_setup_arg, "%", "sl_", 1);
   }
 
   if (args_info.python_setup_given) {
     if (DebugLevel > 1) 
-      fprintf(stderr, "Generating python setup script '%s'\n",
+      fprintf(logfp, "Generating python setup script '%s'\n",
 	      args_info.python_setup_arg);
     generateSetupScript(args_info.python_setup_arg, "#", "", 0);
   }
@@ -440,8 +441,8 @@ char **argv;
     rcnt++;
     SEED+=NReactions;
     /*    
-    fprintf(stderr,"NR= %d\t",NReactions);    
-    fprintf(stderr,"react= %d\trnap= %d\tribo= %d\tmrnap= %d\tmribo= %d\n",
+    fprintf(logfp,"NR= %d\t",NReactions);    
+    fprintf(logfp,"react= %d\trnap= %d\tribo= %d\tmrnap= %d\tmribo= %d\n",
 	    react_mptr_full,
 	    rnap_mptr_full,
 	    ribo_mptr_full,
