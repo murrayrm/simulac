@@ -28,6 +28,7 @@
 
 /* External variables */
 extern int DebugLevel;			/* Debugging for printing messages */
+extern FILE *logfp;			/* Log file */
 
 /* Local storage of parameter values */
 int param_cnt = 0;			/* Number of parameters */
@@ -50,7 +51,7 @@ int param_init(int n, char **params)
     /* Make a copy of the string */
     param_tbl[i].name = strdup(params[i]);
     if (DebugLevel >= 4)
-      fprintf(stderr, "param: parsing '%s'\n", param_tbl[i].name);
+      fprintf(logfp, "param: parsing '%s'\n", param_tbl[i].name);
 
     /* Scan through to find the first space */
     int j = 0;
@@ -76,7 +77,7 @@ int param_init(int n, char **params)
     param_tbl[i].value = param_tbl[i].name + j;
 
     if (DebugLevel >= 4)
-      fprintf(stderr, "param: stored '%s' = '%s'\n", param_tbl[i].name,
+      fprintf(logfp, "param: stored '%s' = '%s'\n", param_tbl[i].name,
 	      param_tbl[i].value);
   }
   param_cnt = i;			/* save the final count */
@@ -137,13 +138,13 @@ int param_parse_value(char *buffer, char *fmt, void *value)
   /* Look to see if this parameter is in our database */
   int i;
   if (DebugLevel >= 4)
-    fprintf(stderr, "param: searching for '%s'\n", name);
+    fprintf(logfp, "param: searching for '%s'\n", name);
   for (i = 0; i < param_cnt; ++i) {
     if (strcmp(param_tbl[i].name, name) == 0) {
       /* Names matched; return the value */
       sscanf(param_tbl[i].value, fmt, value);
       if (DebugLevel >= 3)
-	fprintf(stderr, "param: matched '%s', returning '%s'\n",
+	fprintf(logfp, "param: matched '%s', returning '%s'\n",
 		param_tbl[i].name, param_tbl[i].value);
       return 0;
     }
@@ -151,7 +152,7 @@ int param_parse_value(char *buffer, char *fmt, void *value)
 
   /* If we didn't find the parameter value in the table, return the default */
   if (DebugLevel >= 3)
-    fprintf(stderr, "param: no match; returning default value '%s'\n", defval);
+    fprintf(logfp, "param: no match; returning default value '%s'\n", defval);
   sscanf(defval, fmt, value);  
   return 0;
 }

@@ -116,7 +116,7 @@ int n;
   assert(StoMat2 != NULL);
 
   if (DebugLevel >= 2) 
-    fprintf(stderr,"NMassAction= %d NSpecies = %d\n",NMassAction, n);
+    fprintf(logfp,"NMassAction= %d NSpecies = %d\n",NMassAction, n);
 
   for (i=0; i < NMassAction; i++) {
     StoMat1[i] = (int *) rrealloc(StoMat1[i], n, sizeof(int), "GrowStomatS.1");
@@ -166,7 +166,7 @@ char *name;
   Concentration[NSpecies-1]=0;
 
   if (DebugLevel >= 2)
-    fprintf(stderr,"@@@ %s: Added Species: %s\n", progid, name);
+    fprintf(logfp,"@@@ %s: Added Species: %s\n", progid, name);
 }
 
 /*** Base Unit is set to seconds ****/
@@ -493,7 +493,7 @@ char *mech;
       exit(-1);
     }
     if (DebugLevel >= 2)
-      fprintf(stderr,"@@@ [%s]= %d\n",SpeciesName[j],molec);
+      fprintf(logfp,"@@@ [%s]= %d\n",SpeciesName[j],molec);
     Concentration[j]=molec;
   }
   
@@ -818,7 +818,7 @@ char *mech;
 #ifdef RMM_MODS
        /* Keep a list of the promoters for future reference */
        if (DebugLevel >= 3)
-	 fprintf(stderr, "Reading promoter %s, copy %d\n", sequence->Name, i);
+	 fprintf(logfp, "Reading promoter %s, copy %d\n", sequence->Name, i);
 
        if (NPromotors == 0) {
 	 /* Allocate space for the promotor list */
@@ -1045,7 +1045,7 @@ char      *params;
   /* If we haven't read the operator file, do so now */
   if(i==NOperators){
     if (DebugLevel >= 3)
-      fprintf(stderr,"@@@ Reading SheaAckers for copy %d\n",copy);
+      fprintf(logfp,"@@@ Reading SheaAckers for copy %d\n",copy);
     ReadSheaAckers(copy,token2);
   }
 
@@ -1107,7 +1107,7 @@ char *file;
   if(NSites<=0 || NConfigs <=0){
     fprintf(stderr,"%s: The number of binding sites and configurations must be more that 0 for this object.\n",progid);
     if (DebugLevel >= 3)
-      fprintf(stderr,"%s: Sites= %d, Configs= %d in file %s\n",
+      fprintf(logfp,"%s: Sites= %d, Configs= %d in file %s\n",
 	      progid,NSites,NConfigs,file);
     exit(-1);
   }
@@ -1244,7 +1244,7 @@ char     *params;
   int antiterminated = 0;
   if(strcasecmp(token1, "TermModifier") == 0) {
     if (DebugLevel >= 3)
-      fprintf(stderr, "%s: Reading anti-terminator modification\n", progid);
+      fprintf(logfp, "%s: Reading anti-terminator modification\n", progid);
 
     /* Read the species for the modifier */
     tdata->SpeciesIndex = FindSpecies(token2);
@@ -1256,7 +1256,7 @@ char     *params;
     antiterminated = 1;
   } else {
     if (DebugLevel >= 3)
-      fprintf(stderr, "%s: Unmodified terminator\n", progid);
+      fprintf(logfp, "%s: Unmodified terminator\n", progid);
 
     /* Rescan the line for BaseFallOffRate */
 #   warning Unsafe usage of sscanf
@@ -1591,7 +1591,7 @@ char     *params;
     /* Check for each optional value in turn */
     if (strcasecmp(token1, "RibosomeBindingRate") == 0) {
       if (DebugLevel >= 3)
-	fprintf(stderr,"%s: found RibosomeBindingRate: %s => %g\n", progid, 
+	fprintf(logfp,"%s: found RibosomeBindingRate: %s => %g\n", progid, 
 		token2, value);
       tdata->RibosomeBindingRate = value;
 

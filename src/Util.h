@@ -40,6 +40,7 @@ extern int EventLevel;
 
 extern int DebugLevel;
 #define DEBUG(A) if((A)<DebugLevel)
+extern FILE *logfp;
 
 /***********
  * 
