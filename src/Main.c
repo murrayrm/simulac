@@ -536,11 +536,26 @@ void generateSetupScript(char *filename, char *comment, char *prefix,
   fprintf(setup_fp, "%sprint_time = %g;\n", prefix, PrintTime);
   fprintf(setup_fp, "%sseed = %ld;\n", prefix, SEED);
 
+  /* Print out cell information */
+  fprintf(setup_fp, "\n%s Cell parameters\n", comment);
+  fprintf(setup_fp, "%scell_size_initial = %g;\n", prefix, EColi->VI);
+  fprintf(setup_fp, "%scell_size_reference = %g;\n", prefix, EColi->V0);
+  fprintf(setup_fp, "%scell_growth_rate = %g;\n", prefix, EColi->GrowthRate);
+
   /* Print out information about the number of objects of each type */
   fprintf(setup_fp, "\n%s System size\n", comment);
   fprintf(setup_fp, "%sn_species = %d;\n", prefix, NSpecies);
   fprintf(setup_fp, "%sn_operators = %d;\n", prefix, NOperators);
   fprintf(setup_fp, "%sn_promoters = %d;\n", prefix, NPromotors);
+
+  /* Print out information about the species that are present */
+  fprintf(setup_fp, "\n%s Species information\n", comment);
+  fprintf(setup_fp, "%sspecies_names = [", prefix);
+  for (i = 0; i < NSpecies; ++i) {
+    if (i != 0) fprintf(setup_fp, ", ");
+    fprintf(setup_fp, "'%s'", SpeciesName[i]);
+  }
+  fprintf(setup_fp, "];\n");
 
   /* Print the column indices for the output file */
   fprintf(setup_fp, "\n%s Data indices\n", comment);
