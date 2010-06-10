@@ -7,6 +7,7 @@ option "debug"	d  "set debugging level (0 = none, 1 = info, ... 5 = all)" int op
 option "init"	i  "initial condition, name=val (int)" string optional multiple
 option "rate"   r  "rate parameter, kNN=val (float)" string optional multiple
 option "volume" v  "initial cell volume, (0-1]" float optional
+option "scale-init" - "scale initial conditions to match volume" flag off
 option "growth" g  "cell growth rate, (0-1]" float optional
 option "header" h  "print header row in output file" flag on 
 option "moi"	m  "multiplicity of infection" int optional

@@ -1382,19 +1382,3 @@ void *rdata;
 
   FreeRibosome(ribosome);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

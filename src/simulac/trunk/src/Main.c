@@ -121,7 +121,9 @@ char **argv;
   strcpy(progid,argv[0]);
 
 #ifdef RMM_MODS
-  /* Command line argument parsing */
+  /* 
+   * Command line argument parsing 
+   */
   if (cmdline_parser(argc, argv, &args_info) != 0) exit(1);
 
   /* See if the user wants some help with options */
@@ -209,6 +211,7 @@ char **argv;
   FillMRNAPBlock();
   FillMRibosomeBlock();
 
+  /* Create "RNAP" and "Ribosome" species */
   SpeciesName= (char **) rcalloc((size_t) 2,(size_t) sizeof(char *),"main");
   SpeciesName[0]= (char *) rcalloc(5,sizeof(char),"main");
   strcpy(SpeciesName[0],"RNAP");
@@ -217,6 +220,13 @@ char **argv;
   Concentration= (int *) rcalloc(2,sizeof(int),"main");
   Concentration[0]=Concentration[1]=0;
 
+  /* 
+   * Allocate space for stoichiometry matrices and reaction probabilities
+   *
+   *! Why are there two matrices?
+   *! Why do we allocate one empty reaction?  Overwritten later?
+   *
+   */
   StoMat1=    (int **) rcalloc(1,sizeof(int *),"main");
   StoMat1[0]= (int *)  rcalloc(2,sizeof(int),"main");
   StoMat2=    (int **) rcalloc(1,sizeof(int *),"main");
@@ -229,7 +239,7 @@ char **argv;
   Rate_Of_Ribosome_Binding         =     0.002;
   Rate_Of_Ribosome_Motion          =   100.; 
 
-  FillBicoTable();
+  FillBicoTable();			/* precompute binomial coeffs */
 
 #ifdef RMM_MODS
   /* Parse the system description file */
@@ -246,6 +256,15 @@ char **argv;
     EColi->V = (EColi->VI *= args_info.volume_arg);
     if (DebugLevel > 1)
       fprintf(logfp, " to %g\n", EColi->VI);
+
+    /* See if we should scale initial conditions */
+    if (args_info.scale_init_given) {
+      int i;
+      for (i = 0; i < NSpecies; ++i)
+	Concentration[i] *= args_info.volume_arg;
+
+      if (DebugLevel > 1) fprintf(logfp, "Scaling initial concentrations\n");
+    }
   }
 
   /* Set growth rate */
