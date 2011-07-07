@@ -1,0 +1,17 @@
+This directory contains some python routines for plotting simulac
+output for the lambda phage example.
+
+To generate the simulations, run the following commands
+
+  $ mkdir test			# create directory for data files
+  $ cp lambda.cfg test		# copy configuration file to data dir
+  $ python gensims.py -s test	# run simulation batch
+
+To plot the results of the simulations, use the following commands:
+
+  $ ipython -pylab
+  In [1]: from arkin import *	# Import plotting functions
+  In [2]: fig3()		# Generate plot; when prompted, select the
+				# 'test' directory
+
+
